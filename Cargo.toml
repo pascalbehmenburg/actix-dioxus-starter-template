@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "api/lib",
+    "api/shuttle",
+    "shared"
+]
+resolver = "2"
