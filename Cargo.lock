@@ -277,6 +277,7 @@ version = "0.1.0"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "shared",
  "sqlx 0.6.3",
  "tracing",
 ]
@@ -532,8 +533,10 @@ checksum = "7f2c685bad3eb3d45a01354cedb7d5faa66194d1d58ba6e267a8de788f79db38"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets",
 ]
 
@@ -2331,6 +2334,9 @@ dependencies = [
 [[package]]
 name = "shared"
 version = "0.1.0"
+dependencies = [
+ "chrono",
+]
 
 [[package]]
 name = "shuttle-actix-web"
