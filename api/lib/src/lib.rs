@@ -1,6 +1,7 @@
 use actix_web::{guard, web, HttpResponse};
 
 pub mod health;
+pub mod todo_repository;
 pub mod todos;
 
 pub fn service(cfg: &mut actix_web::web::ServiceConfig) {
