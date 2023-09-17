@@ -10,7 +10,7 @@ async fn health_check_works() {
         .to_request();
 
     let res = actix_web::test::call_service(&mut app, req).await;
-    
+
     assert!(res.status().is_success());
     assert_eq!(res.status(), StatusCode::OK);
     let data = res.headers().get("version").and_then(|h| h.to_str().ok());

@@ -1,0 +1,40 @@
+# this file is used for testing the api using the REST Client extension in VS Code
+# it may also provide infos for tools
+@host = http://localhost:8000
+@todo_id = 1
+
+### health
+GET {{host}}/health HTTP/1.1
+
+### create todo
+POST {{host}}/v1/todos HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "{{todo_id}}",
+    "title": "Task title",
+    "description": "Task description",
+}
+
+### update todo
+PUT {{host}}/v1/todos HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "{{todo_id}}",
+    "title": "Updated task title",
+    "description": "Updated task description",
+}
+
+### get all todos
+GET {{host}}/v1/todos HTTP/1.1
+
+### get todo
+GET {{host}}/v1/todos/{{todo_id}} HTTP/1.1
+
+### get bad todo
+GET {{host}}/v1/todos/356e42a8-e659-406f-98 HTTP/1.1
+
+
+### delete todo
+DELETE {{host}}/v1/todos/{{todo_id}} HTTP/1.1
