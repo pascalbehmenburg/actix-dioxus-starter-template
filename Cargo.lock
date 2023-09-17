@@ -277,6 +277,8 @@ version = "0.1.0"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "serde",
+ "serde_json",
  "shared",
  "sqlx 0.6.3",
  "tracing",
@@ -2336,6 +2338,7 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "serde",
 ]
 
 [[package]]
