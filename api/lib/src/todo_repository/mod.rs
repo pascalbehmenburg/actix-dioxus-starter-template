@@ -1,7 +1,11 @@
 use shared::models::{CreateTodo, Todo};
 
+mod postgres_todo_repository;
+
 pub type TodoError = String;
 pub type TodoResult<T> = Result<T, TodoError>;
+
+pub use postgres_todo_repository::PostgresTodoRepository;
 
 #[async_trait::async_trait]
 pub trait TodoRepository: Send + Sync + 'static {
