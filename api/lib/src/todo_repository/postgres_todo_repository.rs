@@ -1,4 +1,4 @@
-use shared::models::{CreateTodo, Todo};
+use shared::models::{CreateTodo, Todo, UpdateTodo};
 
 use super::{TodoRepository, TodoResult};
 
@@ -16,11 +16,7 @@ impl PostgresTodoRepository {
 impl TodoRepository for PostgresTodoRepository {
     async fn get_todos(&self) -> TodoResult<Vec<Todo>> {
         sqlx::query_as::<_, Todo>(
-            r#"
-            SELECT id, title, description, is_done, created_at, updated_at
-            FROM todos
-            ORDER BY id
-            "#,
+            "SELECT id, title, description, is_done, created_at, updated_at FROM todos ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -56,19 +52,19 @@ impl TodoRepository for PostgresTodoRepository {
         .map_err(|e| e.to_string())
     }
 
-    async fn update_todo(&self, todo: &Todo) -> TodoResult<Todo> {
+    async fn update_todo(&self, update_todo: &UpdateTodo) -> TodoResult<Todo> {
         sqlx::query_as::<_, Todo>(
             r#"
                 UPDATE todos
                 SET title = $2, description = $3, is_done = $4
                 WHERE id = $1
-                RETURNING id, title, director, year, poster, created_at, updated_at
+                RETURNING id, title, description, is_done, created_at, updated_at
                 "#,
         )
-        .bind(todo.id)
-        .bind(&todo.title)
-        .bind(&todo.description)
-        .bind(todo.is_done)
+        .bind(update_todo.id)
+        .bind(&update_todo.title)
+        .bind(&update_todo.description)
+        .bind(update_todo.is_done)
         .fetch_one(&self.pool)
         .await
         .map_err(|e| e.to_string())

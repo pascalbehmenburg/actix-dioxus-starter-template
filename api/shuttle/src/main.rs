@@ -1,10 +1,13 @@
 use actix_web::web::ServiceConfig;
-use api_lib::todo_repository;
+use api_lib::todo_repository::{self, PostgresTodoRepository, TodoRepository};
 use shuttle_actix_web::ShuttleActixWeb;
 
 #[shuttle_runtime::main]
 async fn actix_web(
-    #[shuttle_shared_db::Postgres()] pool: sqlx::PgPool,
+    #[shuttle_shared_db::Postgres(
+        local_uri = "postgres://postgres:postgres@localhost:19723/lentserver"
+    )]
+    pool: sqlx::PgPool,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
     let todo_repository = todo_repository::PostgresTodoRepository::new(pool);
     let todo_repository = actix_web::web::Data::new(todo_repository);
@@ -12,7 +15,7 @@ async fn actix_web(
     let config = move |cfg: &mut ServiceConfig| {
         cfg.app_data(todo_repository)
             .configure(api_lib::health::service)
-            .configure(api_lib::todos::service);
+            .configure(api_lib::todos::service::<PostgresTodoRepository>);
     };
 
     Ok(config.into())
