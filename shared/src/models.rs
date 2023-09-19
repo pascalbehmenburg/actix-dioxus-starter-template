@@ -31,7 +31,7 @@ pub struct UpdateTodo {
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct User {
-    pub id: i32,
+    pub id: i64,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -51,6 +51,7 @@ pub struct CreateUser {
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UpdateUser {
+    pub id: i64,
     pub name: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
