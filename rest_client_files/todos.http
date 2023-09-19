@@ -1,6 +1,6 @@
 # this file is used for testing the api using the REST Client extension in VS Code
 # it may also provide infos for tools
-@host = http://localhost:8000
+@host = http://localhost:8000/api
 @todo_id = 1
 
 ### create todo
