@@ -4,10 +4,13 @@ use actix_web::web::{self, ServiceConfig};
 use api_lib::todo_repository::{self, PostgresTodoRepository};
 use shuttle_actix_web::ShuttleActixWeb;
 
+#[macro_use]
+extern crate dotenv_codegen;
+
 #[shuttle_runtime::main]
 async fn actix_web(
     #[shuttle_shared_db::Postgres(
-        local_uri = "postgres://postgres:postgres@localhost:19723/lentserver"
+        local_uri = dotenv!("DATABASE_URL")
     )]
     pool: sqlx::PgPool,
     #[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,

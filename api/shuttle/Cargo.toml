@@ -25,3 +25,5 @@ sqlx = { version = "0.7.1", default-features = false, features = [
 ] }
 tracing = "0.1.27"
 api-lib = { path = "../lib" }
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"

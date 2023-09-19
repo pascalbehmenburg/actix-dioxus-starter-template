@@ -1,6 +1,7 @@
 -- make sure the database is using UTC timezone
 SET timezone = 'UTC';
 
+-- TODO: use bigserial not serial
 -- used to store a simple todo prototype in database
 CREATE TABLE todos (
   id SERIAL PRIMARY KEY,

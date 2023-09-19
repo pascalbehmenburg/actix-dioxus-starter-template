@@ -46,13 +46,15 @@ pub struct CreateUser {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub salt: String,
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UpdateUser {
     pub id: i64,
-    pub name: Option<String>,
-    pub email: Option<String>,
-    pub password: Option<String>,
+    pub name: String,
+    pub email: String,
+    pub password: String,
+    pub salt: String,
 }
