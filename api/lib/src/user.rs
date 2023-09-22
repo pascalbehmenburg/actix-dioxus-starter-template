@@ -1,4 +1,7 @@
+use std::ops::Deref;
+
 use actix_identity::Identity;
+use actix_session::Session;
 use actix_web::{
   web::{self, ServiceConfig},
   HttpMessage, HttpRequest,
@@ -25,7 +28,7 @@ pub fn service<R: UserRepository>(cfg: &mut ServiceConfig) {
       // get by id
       .route("/{user_id}", web::get().to(get::<R>))
       // new
-      .route("", web::post().to(post::<R>))
+      .route("/register", web::post().to(post::<R>))
       // update
       .route("", web::put().to(put::<R>))
       // delete
@@ -39,14 +42,28 @@ async fn login<R: UserRepository>(
   request: HttpRequest,
   login_user: web::Json<LoginUser>,
   repo: web::Data<R>,
+  session: Session,
 ) -> ApiResponse {
   let user = repo.get_user_by_email(&login_user.email).await?;
+
+  let user_agent = match request.headers().get("User-Agent") {
+    Some(user_agent) => user_agent.to_str().unwrap_or("Default"),
+    None => "Default",
+  };
+  session.insert("device", user_agent).map_err(|_| ApiError {
+    error_kind: ApiErrorKind::Unauthorized,
+    debug_info: "Failed to insert device into session".to_string(),
+  })?;
 
   match user.0 {
     Some(user) => {
       let user: User = serde_json::from_value(user)?;
-      let parsed_hash = PasswordHash::new(&user.password)?;
+
+      // get the password hash from the database
       let argon2 = Argon2::default();
+      let parsed_hash = PasswordHash::new(&user.password)?;
+
+      // verify the password hash from server with the one from the request
       if argon2
         .verify_password(login_user.password.as_bytes(), &parsed_hash)
         .is_ok()
@@ -84,11 +101,17 @@ async fn post<R: UserRepository>(
 ) -> ApiResponse {
   let salt = SaltString::generate(&mut OsRng);
   let argon2 = Argon2::default();
-  let _password_hash = argon2
+  let password_hash = argon2
     .hash_password(create_user.password.as_bytes(), &salt)?
     .to_string();
-  // TODO FIX THIS SHIT IMMEDIETLY
-  repo.create_user(&create_user).await
+
+  let new_user = CreateUser {
+    password: password_hash,
+    salt: salt.to_string(),
+    ..create_user.into_inner()
+  };
+
+  repo.create_user(&new_user).await
 }
 
 async fn put<R: UserRepository>(

@@ -361,6 +361,7 @@ dependencies = [
  "argon2",
  "async-trait",
  "derive_more",
+ "rand",
  "serde",
  "serde_json",
  "shared",

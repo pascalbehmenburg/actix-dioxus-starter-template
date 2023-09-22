@@ -112,7 +112,7 @@ impl ApiError {
   }
 
   pub fn to_http_response(&self) -> HttpResponse {
-    tracing::error!("{:?}", self.error_kind.to_string());
+    tracing::debug!("{:?}", self.error_kind.to_string());
     tracing::debug!("{:?}", self.debug_info);
     HttpResponse::build(self.http_status_code())
       .insert_header(ContentType::html())
@@ -120,7 +120,7 @@ impl ApiError {
   }
 
   pub fn to_http_response_with_data(&self) -> HttpResponse<ApiData> {
-    tracing::error!("{:?}", self.error_kind.to_string());
+    tracing::debug!("{:?}", self.error_kind.to_string());
     tracing::debug!("{:?}", self.debug_info);
     HttpResponse::build(self.http_status_code())
       .insert_header(ContentType::json())

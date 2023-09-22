@@ -35,3 +35,5 @@ anyhow = "1.0.44"
 argon2 = "0.5.2"
 
 derive_more = "0.99.11"
+
+rand = "0.8.4"
