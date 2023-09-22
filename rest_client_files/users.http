@@ -1,0 +1,40 @@
+# this file is used for testing the api using the REST Client extension in VS Code
+# it may also provide infos for tools
+@host = http://localhost:8000/api
+@user_id = 1
+
+### create user
+POST {{host}}/v1/users HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "name",
+    "email": "email",
+    "password": "foobarhash",
+    "salt": "salt"
+}
+
+### update user
+PUT {{host}}/v1/users HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": 1,
+    "name": "name",
+    "email": "email",
+    "password": "vollsohash",
+    "salt": "salt"
+}
+
+### get all users
+GET {{host}}/v1/users HTTP/1.1
+
+### get user
+GET {{host}}/v1/users/{{user_id}} HTTP/1.1
+
+### get bad user
+GET {{host}}/v1/users/4000 HTTP/1.1
+
+
+### delete user
+DELETE {{host}}/v1/users/{{user_id}} HTTP/1.1

@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 # actix
 actix-web = "4.3.1"
+actix-session = "0.8.0"
+actix-identity = "0.6.0"
 # database
 sqlx = { version = "0.7.1", default-features = false, features = [
     "runtime-tokio",
@@ -28,6 +30,11 @@ async-trait = "0.1"
 # shared
 shared = { path = "../../shared", features = ["backend"] }
 
+anyhow = "1.0.44"
+
+argon2 = "0.5.2"
+
+derive_more = "0.99.11"
 
 [dev-dependencies]
 actix-rt = "2.0.0"

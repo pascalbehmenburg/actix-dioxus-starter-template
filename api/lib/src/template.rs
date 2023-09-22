@@ -6,17 +6,17 @@ use actix_web::{
 
 pub fn service(cfg: &mut ServiceConfig) {
     cfg.service(
-        web::scope("/v1/todos")
+        web::scope("/v1/users")
             // get all
             .route("", web::get().to(get_all))
             // get by id
-            .route("/{todo_id}", web::get().to(get))
+            .route("/{user_id}", web::get().to(get))
             // new
             .route("", web::post().to(post))
             // update
             .route("", web::put().to(put))
             // delete
-            .route("/{todo_id}", web::delete().to(delete)),
+            .route("/{user_id}", web::delete().to(delete)),
     );
 }
 

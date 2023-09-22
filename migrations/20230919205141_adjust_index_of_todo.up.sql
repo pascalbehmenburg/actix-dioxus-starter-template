@@ -1,9 +1,7 @@
--- make sure the database is using UTC timezone
-SET timezone = 'UTC';
-
--- used to store a simple todo prototype in database
+-- Add up migration script here
+DROP TABLE todos;
 CREATE TABLE todos (
-  id SERIAL PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   is_done BOOLEAN NOT NULL DEFAULT FALSE,

@@ -1,1 +1,5 @@
 -- Add down migration script here
+-- ALTER TABLE sessions RENAME TO auth_tokens;
+-- ALTER TABLE auth_tokens RENAME COLUMN session_key TO token;
+-- ALTER TABLE sessions_to_users RENAME TO auth_tokens_to_users;
+-- ALTER TABLE sessions_to_users RENAME COLUMN session_id TO auth_token_id;
