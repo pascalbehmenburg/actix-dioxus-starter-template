@@ -25,7 +25,21 @@ impl UserRepository for PostgresUserRepository {
         .into()
   }
 
-  async fn get_user(&self, user_id: &i64) -> ApiResponse {
+  async fn get_user_by_email(&self, email: &str) -> ApiResponse {
+    sqlx::query_as::<_, User>(
+      r#"
+                SELECT id, name, email, password, salt, created_at, updated_at
+                FROM users
+                WHERE email = $1
+                "#,
+    )
+    .bind(email)
+    .fetch_one(&self.pool)
+    .await?
+    .into()
+  }
+
+  async fn get_user_by_id(&self, user_id: &i64) -> ApiResponse {
     sqlx::query_as::<_, User>(
       r#"
                 SELECT id, name, email, password, salt, created_at, updated_at

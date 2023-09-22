@@ -15,7 +15,6 @@ pub struct Todo {
   pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
@@ -25,7 +24,6 @@ pub struct CreateTodo {
 }
 
 // TODO: This should have Option<> fields so that the client may decide which fields to update
-#[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
@@ -50,7 +48,6 @@ pub struct User {
   pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
@@ -61,7 +58,6 @@ pub struct CreateUser {
   pub salt: String,
 }
 
-#[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
@@ -71,6 +67,14 @@ pub struct UpdateUser {
   pub email: String,
   pub password: String,
   pub salt: String,
+}
+
+#[derive(
+  Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
+)]
+pub struct LoginUser {
+  pub email: String,
+  pub password: String,
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]

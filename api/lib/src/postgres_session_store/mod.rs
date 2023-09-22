@@ -102,7 +102,7 @@ impl SessionStore for PostgresSessionStore {
   ) -> Result<(), anyhow::Error> {
     Ok(())
   }
-
+  // TODO: give the user the option to end a session via logout / list of devices that are logged in
   async fn delete(
     &self,
     _session_key: &SessionKey,

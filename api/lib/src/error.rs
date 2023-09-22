@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use actix_identity::error::LoginError;
 use actix_web::{
   error,
   http::{header::ContentType, StatusCode},
@@ -11,8 +12,8 @@ use crate::response::ApiData;
 
 #[derive(Debug, Error, Clone)]
 pub struct ApiError {
-  error_kind: ApiErrorKind,
-  debug_info: String,
+  pub error_kind: ApiErrorKind,
+  pub debug_info: String,
 }
 
 impl Display for ApiError {
@@ -25,7 +26,7 @@ impl Display for ApiError {
 
 #[allow(dead_code)]
 #[derive(Debug, derive_more::Display, Clone)]
-enum ApiErrorKind {
+pub enum ApiErrorKind {
   #[display(
     fmt = "Bad Request: The server cannot or will not process your reequest \
                 due to something that is perceived to be a client error."
@@ -183,6 +184,15 @@ impl From<actix_web::error::Error> for ApiError {
   fn from(e: actix_web::error::Error) -> Self {
     ApiError {
       error_kind: ApiErrorKind::ActixWebServerError,
+      debug_info: e.to_string(),
+    }
+  }
+}
+
+impl From<LoginError> for ApiError {
+  fn from(e: LoginError) -> Self {
+    ApiError {
+      error_kind: ApiErrorKind::Unauthorized,
       debug_info: e.to_string(),
     }
   }
