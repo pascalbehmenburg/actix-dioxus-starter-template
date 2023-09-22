@@ -1,5 +1,3 @@
-
-
 use actix_identity::IdentityMiddleware;
 use actix_session::SessionMiddleware;
 use actix_web::{
@@ -53,8 +51,8 @@ async fn actix_web(
         .app_data(todo_repository)
         .app_data(user_repository)
         .configure(api_lib::health::service)
-        .configure(api_lib::todos::service::<PostgresTodoRepository>)
-        .configure(api_lib::users::service::<PostgresUserRepository>),
+        .configure(api_lib::todo::service::<PostgresTodoRepository>)
+        .configure(api_lib::user::service::<PostgresUserRepository>),
     );
     //.service(
     //    actix_files::Files::new("/", static_folder)

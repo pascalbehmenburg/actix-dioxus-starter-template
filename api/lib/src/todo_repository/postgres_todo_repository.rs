@@ -1,6 +1,8 @@
 use shared::models::{CreateTodo, Todo, UpdateTodo};
 
-use super::{TodoRepository, TodoResult};
+use crate::response::ApiResponse;
+
+use super::TodoRepository;
 
 pub struct PostgresTodoRepository {
   pool: sqlx::PgPool,
@@ -14,16 +16,16 @@ impl PostgresTodoRepository {
 
 #[async_trait::async_trait]
 impl TodoRepository for PostgresTodoRepository {
-  async fn get_todos(&self) -> TodoResult<Vec<Todo>> {
+  async fn get_todos(&self) -> ApiResponse {
     sqlx::query_as::<_, Todo>(
             "SELECT id, title, description, is_done, created_at, updated_at FROM todos ORDER BY id",
         )
         .fetch_all(&self.pool)
-        .await
-        .map_err(|e| e.to_string())
+        .await?
+        .into()
   }
 
-  async fn get_todo(&self, todo_id: &i64) -> TodoResult<Todo> {
+  async fn get_todo(&self, todo_id: &i64) -> ApiResponse {
     sqlx::query_as::<_, Todo>(
       r#"
                 SELECT id, title, description, is_done, created_at, updated_at
@@ -33,11 +35,11 @@ impl TodoRepository for PostgresTodoRepository {
     )
     .bind(todo_id)
     .fetch_one(&self.pool)
-    .await
-    .map_err(|e| e.to_string())
+    .await?
+    .into()
   }
 
-  async fn create_todo(&self, create_todo: &CreateTodo) -> TodoResult<Todo> {
+  async fn create_todo(&self, create_todo: &CreateTodo) -> ApiResponse {
     sqlx::query_as::<_, Todo>(
             r#"
                 INSERT INTO todos (title, description)
@@ -48,11 +50,11 @@ impl TodoRepository for PostgresTodoRepository {
         .bind(&create_todo.title)
         .bind(&create_todo.description)
         .fetch_one(&self.pool)
-        .await
-        .map_err(|e| e.to_string())
+        .await?
+        .into()
   }
 
-  async fn update_todo(&self, update_todo: &UpdateTodo) -> TodoResult<Todo> {
+  async fn update_todo(&self, update_todo: &UpdateTodo) -> ApiResponse {
     sqlx::query_as::<_, Todo>(
             r#"
                 UPDATE todos
@@ -66,11 +68,11 @@ impl TodoRepository for PostgresTodoRepository {
         .bind(&update_todo.description)
         .bind(update_todo.is_done)
         .fetch_one(&self.pool)
-        .await
-        .map_err(|e| e.to_string())
+        .await?
+        .into()
   }
 
-  async fn delete_todo(&self, todo_id: &i64) -> TodoResult<i64> {
+  async fn delete_todo(&self, todo_id: &i64) -> ApiResponse {
     sqlx::query_scalar::<_, i64>(
       r#"
                 DELETE FROM todos
@@ -80,7 +82,7 @@ impl TodoRepository for PostgresTodoRepository {
     )
     .bind(todo_id)
     .fetch_one(&self.pool)
-    .await
-    .map_err(|e| e.to_string())
+    .await?
+    .into()
   }
 }

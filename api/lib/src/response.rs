@@ -6,11 +6,12 @@ use std::{
 use crate::error::ApiError;
 use actix_web::{
   body::{BodySize, MessageBody},
+  http::header::ContentType,
   HttpResponse, Responder,
 };
-use serde::{Serialize};
+use serde::Serialize;
 
-
+#[derive(Debug)]
 pub struct ApiResponse(pub Result<ApiData, ApiError>);
 
 impl<S: Serialize> From<S> for ApiResponse {
@@ -58,6 +59,7 @@ impl Try for ApiResponse {
   }
 }
 
+#[derive(Debug)]
 pub struct ApiData(pub Option<serde_json::Value>);
 
 impl From<serde_json::Value> for ApiData {
@@ -92,10 +94,17 @@ impl MessageBody for ApiData {
     _cx: &mut std::task::Context<'_>,
   ) -> std::task::Poll<Option<Result<actix_web::web::Bytes, Self::Error>>> {
     let api_data = self.get_mut();
+    //TODO
     // for now just send all json data later on one could find a way to distingiush between
     // single json objects and arrays of json objects
     // so that one can stream the arrays of json objects instead of sending them as a whole
-    std::task::Poll::Ready(api_data.0.as_ref().map(|json| Ok(actix_web::web::Bytes::from(json.to_string()))))
+    let result = std::task::Poll::Ready(match &api_data.0 {
+      Some(json) => Some(Ok(actix_web::web::Bytes::from(json.to_string()))),
+      None => None,
+    });
+    // replace data with None so that poll_next returns None and therefore the 'stream' is finished
+    drop(std::mem::replace(api_data, ApiData(None)));
+    result
   }
 }
 
@@ -108,7 +117,10 @@ impl Responder for ApiResponse {
   ) -> HttpResponse<Self::Body> {
     // TODO: fix shit above then
     match self {
-      Self(Ok(api_data)) => HttpResponse::Ok().message_body(api_data).unwrap(),
+      Self(Ok(api_data)) => HttpResponse::Ok()
+        .content_type(ContentType::json())
+        .message_body(api_data)
+        .unwrap(),
       Self(Err(api_error)) => api_error.to_http_response_with_data(),
     }
   }

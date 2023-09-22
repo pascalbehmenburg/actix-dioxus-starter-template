@@ -35,6 +35,3 @@ anyhow = "1.0.44"
 argon2 = "0.5.2"
 
 derive_more = "0.99.11"
-
-[dev-dependencies]
-actix-rt = "2.0.0"

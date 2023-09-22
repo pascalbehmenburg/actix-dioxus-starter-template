@@ -25,7 +25,10 @@ pub fn service<R: UserRepository>(cfg: &mut ServiceConfig) {
 }
 
 async fn get_all<R: UserRepository>(repo: web::Data<R>) -> ApiResponse {
-  repo.get_users().await
+  tracing::info!("get_all route called");
+  let meme = repo.get_users().await;
+  tracing::info!("get_all route repo returned data {meme:?}");
+  meme
 }
 
 async fn get<R: UserRepository>(
