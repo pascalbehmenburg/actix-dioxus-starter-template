@@ -58,7 +58,7 @@ impl TodoRepository for PostgresTodoRepository {
     sqlx::query_as::<_, Todo>(
             r#"
                 UPDATE todos
-                SET title = $2, description = $3, is_done = $4
+                SET title = $2, description = $3, is_done = $4, updated_at = now()
                 WHERE id = $1
                 RETURNING id, title, description, is_done, created_at, updated_at
                 "#,

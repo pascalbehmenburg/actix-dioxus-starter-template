@@ -12,15 +12,11 @@ pub(crate) type SessionState = HashMap<String, String>;
 #[derive(Clone)]
 pub struct PostgresSessionStore {
   pool: sqlx::PgPool,
-  device_id: Option<String>,
 }
 
 impl PostgresSessionStore {
   pub fn new(pool: sqlx::PgPool) -> Self {
-    Self {
-      pool,
-      device_id: None,
-    }
+    Self { pool }
   }
 }
 
@@ -78,6 +74,7 @@ impl SessionStore for PostgresSessionStore {
     session_state: SessionState,
     _ttl: &Duration,
   ) -> Result<SessionKey, UpdateError> {
+    // TODO: check if this is the intended behaviour
     match sqlx::query_as::<_, Session>(
       r#"
                 UPDATE sessions

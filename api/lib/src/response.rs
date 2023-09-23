@@ -94,14 +94,13 @@ impl MessageBody for ApiData {
     _cx: &mut std::task::Context<'_>,
   ) -> std::task::Poll<Option<Result<actix_web::web::Bytes, Self::Error>>> {
     let api_data = self.get_mut();
-    //TODO
-    // for now just send all json data later on one could find a way to distingiush between
-    // single json objects and arrays of json objects
-    // so that one can stream the arrays of json objects instead of sending them as a whole
-    let result = std::task::Poll::Ready(match &api_data.0 {
-      Some(json) => Some(Ok(actix_web::web::Bytes::from(json.to_string()))),
-      None => None,
-    });
+    //TODO implement data streaming for vec type
+    let result = std::task::Poll::Ready(
+      api_data
+        .0
+        .as_ref()
+        .map(|json| Ok(actix_web::web::Bytes::from(json.to_string()))),
+    );
     // replace data with None so that poll_next returns None and therefore the 'stream' is finished
     drop(std::mem::replace(api_data, ApiData(None)));
     result
@@ -115,7 +114,6 @@ impl Responder for ApiResponse {
     self,
     _req: &actix_web::HttpRequest,
   ) -> HttpResponse<Self::Body> {
-    // TODO: fix shit above then
     match self {
       Self(Ok(api_data)) => HttpResponse::Ok()
         .content_type(ContentType::json())

@@ -8,10 +8,9 @@ POST {{host}}/v1/users/register HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "test user",
+    "name": "test",
     "email": "test@test.com",
     "password": "verySafePassword123.",
-    "salt": ""
 }
 
 ### login user
@@ -32,7 +31,6 @@ Content-Type: application/json
     "name": "name",
     "email": "email",
     "password": "vollsohash",
-    "salt": "salt"
 }
 
 ### get all users

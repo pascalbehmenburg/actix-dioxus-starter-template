@@ -92,7 +92,6 @@ impl error::ResponseError for ApiError {
     self.http_status_code()
   }
 }
-// TODO: move status_code and to impl ApiError
 impl ApiError {
   pub fn http_status_code(&self) -> StatusCode {
     match self.error_kind {

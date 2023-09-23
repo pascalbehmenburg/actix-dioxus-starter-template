@@ -23,7 +23,7 @@ pub struct CreateTodo {
   pub description: String,
 }
 
-// TODO: This should have Option<> fields so that the client may decide which fields to update
+// TODO: Think about optional values
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
@@ -43,7 +43,6 @@ pub struct User {
   pub name: String,
   pub email: String,
   pub password: String,
-  pub salt: String,
   pub created_at: chrono::DateTime<chrono::Utc>,
   pub updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -55,7 +54,6 @@ pub struct CreateUser {
   pub name: String,
   pub email: String,
   pub password: String,
-  pub salt: String,
 }
 
 #[derive(
@@ -66,7 +64,6 @@ pub struct UpdateUser {
   pub name: String,
   pub email: String,
   pub password: String,
-  pub salt: String,
 }
 
 #[derive(

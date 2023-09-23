@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use actix_identity::Identity;
 use actix_session::Session;
 use actix_web::{
@@ -99,15 +97,16 @@ async fn post<R: UserRepository>(
   create_user: web::Json<CreateUser>,
   repo: web::Data<R>,
 ) -> ApiResponse {
-  let salt = SaltString::generate(&mut OsRng);
   let argon2 = Argon2::default();
   let password_hash = argon2
-    .hash_password(create_user.password.as_bytes(), &salt)?
+    .hash_password(
+      create_user.password.as_bytes(),
+      &SaltString::generate(&mut OsRng),
+    )?
     .to_string();
 
   let new_user = CreateUser {
     password: password_hash,
-    salt: salt.to_string(),
     ..create_user.into_inner()
   };
 
