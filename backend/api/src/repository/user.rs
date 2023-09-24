@@ -1,8 +1,16 @@
 use shared::models::{CreateUser, UpdateUser, User};
 
-use crate::response::ApiResponse;
+use crate::util::Response;
 
-use super::UserRepository;
+#[async_trait::async_trait]
+pub trait UserRepository: Send + Sync + 'static {
+  async fn get_users(&self) -> Response;
+  async fn get_user_by_id(&self, id: &i64) -> Response;
+  async fn get_user_by_email(&self, email: &str) -> Response;
+  async fn create_user(&self, create_user: &CreateUser) -> Response;
+  async fn update_user(&self, update_user: &UpdateUser) -> Response;
+  async fn delete_user(&self, id: &i64) -> Response;
+}
 
 pub struct PostgresUserRepository {
   pool: sqlx::PgPool,
@@ -16,16 +24,16 @@ impl PostgresUserRepository {
 
 #[async_trait::async_trait]
 impl UserRepository for PostgresUserRepository {
-  async fn get_users(&self) -> ApiResponse {
+  async fn get_users(&self) -> Response {
     sqlx::query_as::<_, User>(
             "SELECT id, name, email, password, created_at, updated_at FROM users ORDER BY id",
         )
         .fetch_all(&self.pool)
-        .await?
+        .await
         .into()
   }
 
-  async fn get_user_by_email(&self, email: &str) -> ApiResponse {
+  async fn get_user_by_email(&self, email: &str) -> Response {
     sqlx::query_as::<_, User>(
       r#"
                 SELECT id, name, email, password, created_at, updated_at
@@ -35,11 +43,11 @@ impl UserRepository for PostgresUserRepository {
     )
     .bind(email)
     .fetch_one(&self.pool)
-    .await?
+    .await
     .into()
   }
 
-  async fn get_user_by_id(&self, user_id: &i64) -> ApiResponse {
+  async fn get_user_by_id(&self, user_id: &i64) -> Response {
     sqlx::query_as::<_, User>(
       r#"
                 SELECT id, name, email, password, created_at, updated_at
@@ -49,11 +57,11 @@ impl UserRepository for PostgresUserRepository {
     )
     .bind(user_id)
     .fetch_one(&self.pool)
-    .await?
+    .await
     .into()
   }
 
-  async fn create_user(&self, create_user: &CreateUser) -> ApiResponse {
+  async fn create_user(&self, create_user: &CreateUser) -> Response {
     sqlx::query_as::<_, User>(
       r#"
                 INSERT INTO users (name, email, password)
@@ -65,11 +73,11 @@ impl UserRepository for PostgresUserRepository {
     .bind(&create_user.email)
     .bind(&create_user.password)
     .fetch_one(&self.pool)
-    .await?
+    .await
     .into()
   }
 
-  async fn update_user(&self, update_user: &UpdateUser) -> ApiResponse {
+  async fn update_user(&self, update_user: &UpdateUser) -> Response {
     sqlx::query_as::<_, User>(
       r#"
                 UPDATE users
@@ -83,11 +91,11 @@ impl UserRepository for PostgresUserRepository {
     .bind(&update_user.email)
     .bind(&update_user.password)
     .fetch_one(&self.pool)
-    .await?
+    .await
     .into()
   }
 
-  async fn delete_user(&self, user_id: &i64) -> ApiResponse {
+  async fn delete_user(&self, user_id: &i64) -> Response {
     sqlx::query_scalar::<_, i64>(
       r#"
                 DELETE FROM users
@@ -97,7 +105,7 @@ impl UserRepository for PostgresUserRepository {
     )
     .bind(user_id)
     .fetch_one(&self.pool)
-    .await?
+    .await
     .into()
   }
 }

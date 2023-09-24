@@ -1,12 +1,11 @@
 [package]
-name = "api-lib"
+name = "api"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# actix
 actix-web = "4.3.1"
 actix-session = "0.8.0"
 actix-identity = "0.6.0"
@@ -37,3 +36,10 @@ argon2 = "0.5.2"
 derive_more = "0.99.11"
 
 rand = "0.8.4"
+
+actix-http = "3.4.0"
+bytes = "1.0.1"
+futures-core = "0.3.17"
+
+[features]
+__compress = []

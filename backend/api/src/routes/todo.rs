@@ -1,7 +1,7 @@
 use actix_web::web::{self, ServiceConfig};
 use shared::models::{CreateTodo, UpdateTodo};
 
-use crate::{response::ApiResponse, todo_repository::TodoRepository};
+use crate::{repository::TodoRepository, util::Response};
 
 pub fn service<R: TodoRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
@@ -19,34 +19,34 @@ pub fn service<R: TodoRepository>(cfg: &mut ServiceConfig) {
   );
 }
 
-async fn get_all<R: TodoRepository>(repo: web::Data<R>) -> ApiResponse {
+async fn get_all<R: TodoRepository>(repo: web::Data<R>) -> Response {
   repo.get_todos().await
 }
 
 async fn get<R: TodoRepository>(
   todo_id: web::Path<i64>,
   repo: web::Data<R>,
-) -> ApiResponse {
+) -> Response {
   repo.get_todo(&todo_id).await
 }
 
 async fn post<R: TodoRepository>(
   create_todo: web::Json<CreateTodo>,
   repo: web::Data<R>,
-) -> ApiResponse {
+) -> Response {
   repo.create_todo(&create_todo).await
 }
 
 async fn put<R: TodoRepository>(
   update_todo: web::Json<UpdateTodo>,
   repo: web::Data<R>,
-) -> ApiResponse {
+) -> Response {
   repo.update_todo(&update_todo).await
 }
 
 async fn delete<R: TodoRepository>(
   todo_id: web::Path<i64>,
   repo: web::Data<R>,
-) -> ApiResponse {
+) -> Response {
   repo.delete_todo(&todo_id).await
 }

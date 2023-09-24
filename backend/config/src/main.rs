@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_identity::IdentityMiddleware;
 use actix_session::SessionMiddleware;
 use actix_web::{
@@ -5,10 +7,10 @@ use actix_web::{
   middleware,
   web::{self, ServiceConfig},
 };
-use api_lib::{
-  postgres_session_store::PostgresSessionStore,
-  todo_repository::{self, PostgresTodoRepository},
-  user_repository::{self, PostgresUserRepository},
+
+use api::{
+  repository::{todo, user, PostgresTodoRepository, PostgresUserRepository},
+  util::{Error, PostgresSessionStore},
 };
 use shuttle_actix_web::ShuttleActixWeb;
 
@@ -23,12 +25,10 @@ async fn actix_web(
   pool: sqlx::PgPool,
   //#[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
-  let todo_repository =
-    todo_repository::PostgresTodoRepository::new(pool.clone());
+  let todo_repository = todo::PostgresTodoRepository::new(pool.clone());
   let todo_repository = actix_web::web::Data::new(todo_repository);
 
-  let user_repository =
-    user_repository::PostgresUserRepository::new(pool.clone());
+  let user_repository = user::PostgresUserRepository::new(pool.clone());
   let user_repository = actix_web::web::Data::new(user_repository);
 
   let session_store = PostgresSessionStore::new(pool.clone());
@@ -50,9 +50,9 @@ async fn actix_web(
         )
         .app_data(todo_repository)
         .app_data(user_repository)
-        .configure(api_lib::health::service)
-        .configure(api_lib::todo::service::<PostgresTodoRepository>)
-        .configure(api_lib::user::service::<PostgresUserRepository>),
+        .configure(api::routes::health::service)
+        .configure(api::routes::todo::service::<PostgresTodoRepository>)
+        .configure(api::routes::user::service::<PostgresUserRepository>),
     );
     //.service(
     //    actix_files::Files::new("/", static_folder)

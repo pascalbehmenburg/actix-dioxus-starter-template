@@ -1,5 +1,5 @@
 [package]
-name = "api-shuttle"
+name = "config"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,11 +10,10 @@ actix-session = "0.8.0"
 actix-identity = "0.6.0"
 
 tokio = "1.26.0"
-
-shuttle-runtime = "0.26.0"
-shuttle-actix-web = "0.26.0"
-shuttle-shared-db = { version = "0.26.0", features = ["postgres-rustls"] }
-shuttle-static-folder = "0.26.0"
+shuttle-runtime = "0.27.0"
+shuttle-actix-web = "0.27.0"
+shuttle-shared-db = { version = "0.27.0", features = ["postgres-rustls"] }
+shuttle-static-folder = "0.27.0"
 
 sqlx = { version = "0.7.1", default-features = false, features = [
     "runtime-tokio",
@@ -26,6 +25,7 @@ sqlx = { version = "0.7.1", default-features = false, features = [
     "json",
 ] }
 tracing = "0.1.27"
-api-lib = { path = "../lib" }
+api = { path = "../api" }
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
+shuttle = "0.6.1"

@@ -351,41 +351,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
-name = "api-lib"
+name = "api"
 version = "0.1.0"
 dependencies = [
+ "actix-http",
  "actix-identity",
  "actix-session",
  "actix-web",
  "anyhow",
  "argon2",
  "async-trait",
+ "bytes",
  "derive_more",
+ "futures-core",
  "rand",
  "serde",
  "serde_json",
  "shared",
  "sqlx",
- "tracing",
-]
-
-[[package]]
-name = "api-shuttle"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-identity",
- "actix-session",
- "actix-web",
- "api-lib",
- "dotenv",
- "dotenv_codegen",
- "shuttle-actix-web",
- "shuttle-runtime",
- "shuttle-shared-db",
- "shuttle-static-folder",
- "sqlx",
- "tokio",
  "tracing",
 ]
 
@@ -412,6 +395,12 @@ name = "askama_escape"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "619743e34b5ba4e9703bba34deac3427c72507c7159f5fd030aea8cac0cfe341"
+
+[[package]]
+name = "assoc"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfdc70193dadb9d7287fa4b633f15f90c876915b31f6af17da307fc59c9859a8"
 
 [[package]]
 name = "async-stream"
@@ -561,6 +550,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitvec"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1bc2832c24239b0141d5674bb9174f9d68a8b5b3f2753311927c172ca46f7e9c"
+dependencies = [
+ "funty",
+ "radium",
+ "tap",
+ "wyz",
+]
+
+[[package]]
 name = "blake2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -684,10 +685,31 @@ version = "6.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e959d788268e3bf9d35ace83e81b124190378e4c91c9067524675e33394b8ba"
 dependencies = [
- "crossterm",
+ "crossterm 0.26.1",
  "strum",
  "strum_macros",
  "unicode-width",
+]
+
+[[package]]
+name = "config"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-identity",
+ "actix-session",
+ "actix-web",
+ "api",
+ "dotenv",
+ "dotenv_codegen",
+ "shuttle",
+ "shuttle-actix-web",
+ "shuttle-runtime",
+ "shuttle-shared-db",
+ "shuttle-static-folder",
+ "sqlx",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -795,6 +817,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a84cda67535339806297f1b331d6dd6320470d2a0fe65381e79ee9e156dd3d13"
 dependencies = [
  "bitflags 1.3.2",
+ "crossterm_winapi",
+ "libc",
+ "mio",
+ "parking_lot",
+ "signal-hook",
+ "signal-hook-mio",
+ "winapi",
+]
+
+[[package]]
+name = "crossterm"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f476fe445d41c9e991fd07515a6f463074b782242ccf4a5b7b1d1012e70824df"
+dependencies = [
+ "bitflags 2.4.0",
  "crossterm_winapi",
  "libc",
  "mio",
@@ -1047,10 +1085,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "fs_extra"
-version = "1.3.0"
+name = "funty"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
+checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "futures"
@@ -1149,6 +1187,19 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
+]
+
+[[package]]
+name = "generator"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cc16584ff22b460a382b7feec54b23d2908d858152e5739a120b949293bd74e"
+dependencies = [
+ "cc",
+ "libc",
+ "log",
+ "rustversion",
+ "windows",
 ]
 
 [[package]]
@@ -1910,6 +1961,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
+name = "owo-colors"
+version = "3.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1b04fb49957986fdce4d6ee7a65027d55d4b6d2265e5848bbb507b58ccfdb6f"
+
+[[package]]
 name = "parking_lot"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2131,6 +2188,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "radium"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
+
+[[package]]
 name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2158,6 +2221,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
+dependencies = [
+ "rand_core",
 ]
 
 [[package]]
@@ -2406,6 +2478,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
 
 [[package]]
+name = "scoped-tls"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1cf6437eb19a8f4a6cc0f7dca544973b0b78843adbfeb3683d1a94a0024a294"
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2505,16 +2583,37 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "actix-web",
  "chrono",
+ "derive_more",
  "serde",
  "sqlx",
 ]
 
 [[package]]
-name = "shuttle-actix-web"
-version = "0.26.0"
+name = "shuttle"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "458a61e8b63ebd4b87e03fd3c0b141602b05375ff50007b96704d9232b172510"
+checksum = "2c0bfcaa99240f0a404da9c2f0809f8bb502951a4a26f5288acf43462a4805db"
+dependencies = [
+ "assoc",
+ "bitvec",
+ "generator",
+ "hex",
+ "owo-colors",
+ "rand",
+ "rand_core",
+ "rand_pcg",
+ "scoped-tls",
+ "smallvec",
+ "tracing",
+]
+
+[[package]]
+name = "shuttle-actix-web"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f98b0c393690fea0a3da6168ee249431aedb02b700856d5f772cd049794a4082"
 dependencies = [
  "actix-web",
  "num_cpus",
@@ -2523,9 +2622,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-codegen"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42b8ba55ed2ca6c5066e049e9c4ac91ba341ca0d59676858438b8028b9d84ae1"
+checksum = "20aa59e8ee75ff94b06d13763bb87d083262abe8f896e55ccbd5fd92207b8485"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2535,9 +2634,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-common"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cf9e5fd064c4c4419e278503401ad40a05d06faa692c1aeaf2d328c9fe75d0a"
+checksum = "19e5f370ad24f777bd6f45f98d84607822993e4672af6b21b71158c6dc0c4b53"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2545,7 +2644,7 @@ dependencies = [
  "bytes",
  "chrono",
  "comfy-table",
- "crossterm",
+ "crossterm 0.27.0",
  "headers",
  "http",
  "http-body",
@@ -2577,12 +2676,13 @@ dependencies = [
 
 [[package]]
 name = "shuttle-proto"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fbced5923ae746e163c4d0132e6b5a9a247b0fe2fe9f3177cc085dfa251e84b"
+checksum = "b9239b46e75ee3d0266729e896e3d077939ab3724cc9bba58d060396149ec288"
 dependencies = [
  "anyhow",
  "chrono",
+ "dunce",
  "home",
  "prost",
  "prost-types",
@@ -2596,9 +2696,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-runtime"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5821f66337755804f83f52b2d4b1fc0d39f43a6b6c9fab799e23e8864fcc9e4"
+checksum = "3609e885b2c8115ff86d2a892d5f9e6421d8de5588197f7e020e06f55888d335"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2622,9 +2722,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-service"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f6d1b15c4945d1122637647148163f11c698ff2776303dcbfbbbece40beb735"
+checksum = "55d8e7379d5fcde2c1f309cd4f9042cfa425a18c9ee514c4aad78540034d2925"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2636,9 +2736,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-shared-db"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aaccb6e8563297b879363ba71b74fec405539b4e00c570dbf42493f518dbeee"
+checksum = "4e55c890a682296d737d47ca7456ea70faea174778a6b66f0e2d03f7ba01123e"
 dependencies = [
  "async-trait",
  "serde",
@@ -2648,16 +2748,13 @@ dependencies = [
 
 [[package]]
 name = "shuttle-static-folder"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3496cce241847f59db64f56c4631abde560f4bfd620033750ee3fc1cbf58f2fb"
+checksum = "3bad4f140f8aaae722cf785c0496243913441454eecec60481e8f9781c160970"
 dependencies = [
  "async-trait",
- "dunce",
- "fs_extra",
  "serde",
  "shuttle-service",
- "tracing",
 ]
 
 [[package]]
@@ -3067,6 +3164,12 @@ name = "sync_wrapper"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2047c6ded9c721764247e62cd3b03c09ffc529b2ba5b10ec482ae507a4a70160"
+
+[[package]]
+name = "tap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
@@ -3746,6 +3849,15 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys",
+]
+
+[[package]]
+name = "wyz"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
+dependencies = [
+ "tap",
 ]
 
 [[package]]
