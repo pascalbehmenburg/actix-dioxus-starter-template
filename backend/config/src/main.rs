@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use actix_identity::IdentityMiddleware;
 use actix_session::SessionMiddleware;
 use actix_web::{
@@ -10,7 +8,7 @@ use actix_web::{
 
 use api::{
   repository::{todo, user, PostgresTodoRepository, PostgresUserRepository},
-  util::{Error, PostgresSessionStore},
+  util::PostgresSessionStore,
 };
 use shuttle_actix_web::ShuttleActixWeb;
 
