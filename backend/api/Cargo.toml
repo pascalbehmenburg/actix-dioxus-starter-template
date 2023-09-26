@@ -7,7 +7,7 @@ authors.workspace = true
 
 
 [dependencies]
-actix-web = "4.3.1"
+actix-web = { version = "4.3.1", features = ["rustls"] }
 actix-session = "0.8.0"
 actix-identity = "0.6.0"
 actix-rt = "2.3.0"
@@ -43,6 +43,8 @@ rand = "0.8.4"
 actix-http = "3.4.0"
 bytes = "1.0.1"
 futures-core = "0.3.17"
-
+reqwest = { version = "0.11.20", features = ["json", "cookies", "rustls-tls"] }
+fake = "2.0.0"
+dotenv = "0.15.0"
 [features]
 __compress = []

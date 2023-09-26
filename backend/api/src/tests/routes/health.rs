@@ -1,5 +1,5 @@
+use crate::routes::health::{service, API_VERSION};
 use actix_web::{http::StatusCode, App};
-use api_lib::health::{service, API_VERSION};
 
 #[actix_rt::test]
 async fn health_check_works() {

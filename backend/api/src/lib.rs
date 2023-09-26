@@ -3,4 +3,5 @@
 
 pub mod repository;
 pub mod routes;
+mod tests;
 pub mod util;

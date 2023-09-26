@@ -26,6 +26,7 @@ impl SessionStore for PostgresSessionStore {
     &self,
     session_key: &SessionKey,
   ) -> Result<Option<SessionState>, LoadError> {
+    tracing::info!("session_key: {:?}", session_key.as_ref());
     match sqlx::query_as::<_, Session>(
       "SELECT * FROM sessions WHERE session_key = $1",
     )
@@ -33,7 +34,10 @@ impl SessionStore for PostgresSessionStore {
     .fetch_optional(&self.pool)
     .await
     {
-      Ok(session) => Ok(session.map(From::from)),
+      Ok(session) => {
+        tracing::info!("session: {:?}", session);
+        Ok(session.map(From::from))
+      }
       Err(e) => Err(LoadError::Other(e.into())),
     }
   }
@@ -44,7 +48,7 @@ impl SessionStore for PostgresSessionStore {
     _ttl: &Duration,
   ) -> Result<SessionKey, SaveError> {
     let session_key = generate_session_key();
-
+    tracing::info!("session_state: {:?}", session_state);
     match sqlx::query_as::<_, Session>(
       r#"
                 INSERT INTO sessions (session_key, device)

@@ -1,7 +1,8 @@
+use actix_identity::Identity;
 use actix_web::web::{self, ServiceConfig};
-use shared::models::{CreateTodo, UpdateTodo};
+use shared::models::{CreateTodoForm, Todo, UpdateTodo};
 
-use crate::{repository::TodoRepository, util::Response};
+use crate::{repository::TodoRepository, routes, util::Response};
 
 pub fn service<R: TodoRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
@@ -31,16 +32,28 @@ async fn get<R: TodoRepository>(
 }
 
 async fn post<R: TodoRepository>(
-  create_todo: web::Json<CreateTodo>,
+  create_todo_form: web::Json<CreateTodoForm>,
   repo: web::Data<R>,
+  user: Identity,
 ) -> Response {
-  repo.create_todo(&create_todo).await
+  let idenity_id = routes::get_identity_id(user).await?;
+  tracing::info!("identity_id: {}", idenity_id);
+  let todo: Todo =
+    Todo::create_todo_with_owner(create_todo_form.into_inner(), idenity_id);
+  tracing::info!("todo: {}", idenity_id);
+  repo.create_todo(&todo).await
 }
 
 async fn put<R: TodoRepository>(
   update_todo: web::Json<UpdateTodo>,
   repo: web::Data<R>,
+  user: Identity,
 ) -> Response {
+  let update_todo = UpdateTodo {
+    owner: routes::get_identity_id(user).await?,
+    ..update_todo.into_inner()
+  };
+
   repo.update_todo(&update_todo).await
 }
 

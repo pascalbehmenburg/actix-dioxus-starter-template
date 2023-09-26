@@ -1,12 +1,13 @@
-use shared::models::{CreateTodo, Todo, UpdateTodo};
+use actix_http::StatusCode;
+use shared::models::{Todo, UpdateTodo};
 
-use crate::util::Response;
+use crate::util::{Error, Response};
 
 #[async_trait::async_trait]
 pub trait TodoRepository: Send + Sync + 'static {
   async fn get_todos(&self) -> Response;
   async fn get_todo(&self, id: &i64) -> Response;
-  async fn create_todo(&self, create_todo: &CreateTodo) -> Response;
+  async fn create_todo(&self, create_todo: &Todo) -> Response;
   async fn update_todo(&self, update_todo: &UpdateTodo) -> Response;
   async fn delete_todo(&self, id: &i64) -> Response;
 }
@@ -25,7 +26,7 @@ impl PostgresTodoRepository {
 impl TodoRepository for PostgresTodoRepository {
   async fn get_todos(&self) -> Response {
     sqlx::query_as::<_,Todo>(
-            "SELECT id, title, description, is_done, created_at, updated_at FROM todos ORDER BY id",
+            "SELECT id, title, description, is_done, owner, created_at, updated_at FROM todos ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -35,7 +36,7 @@ impl TodoRepository for PostgresTodoRepository {
   async fn get_todo(&self, todo_id: &i64) -> Response {
     sqlx::query_as::<_, Todo>(
       r#"
-                SELECT id, title, description, is_done, created_at, updated_at
+                SELECT id, title, description, is_done, owner, created_at, updated_at
                 FROM todos
                 WHERE id = $1
                 "#,
@@ -46,16 +47,16 @@ impl TodoRepository for PostgresTodoRepository {
     .into()
   }
 
-  async fn create_todo(&self, create_todo: &CreateTodo) -> Response {
+  async fn create_todo(&self, todo: &Todo) -> Response {
     sqlx::query_as::<_, Todo>(
             r#"
                 INSERT INTO todos (title, description)
                 VALUES ($1, $2)
-                RETURNING id, title, description, is_done, created_at, updated_at
+                RETURNING id, title, description, owner, is_done, created_at, updated_at
                 "#,
         )
-        .bind(&create_todo.title)
-        .bind(&create_todo.description)
+        .bind(&todo.title)
+        .bind(&todo.description)
         .fetch_one(&self.pool)
         .await
         .into()
@@ -66,17 +67,21 @@ impl TodoRepository for PostgresTodoRepository {
             r#"
                 UPDATE todos
                 SET title = $2, description = $3, is_done = $4, updated_at = now()
-                WHERE id = $1
-                RETURNING id, title, description, is_done, created_at, updated_at
+                WHERE id = $1, owner = $5
+                RETURNING id, title, description, owner, is_done, created_at, updated_at
                 "#,
         )
         .bind(update_todo.id)
         .bind(&update_todo.title)
         .bind(&update_todo.description)
-        .bind(update_todo.is_done)
+        .bind(&update_todo.is_done)
+        .bind(&update_todo.owner)
         .fetch_one(&self.pool)
         .await
-        .into()
+        .map_err(|e| match e {
+          sqlx::Error::RowNotFound => Error::CustomHTTPResponse(StatusCode::FORBIDDEN, "You are not authorized to edit this todo or the todo does not exist.".to_string()),
+          _ => e.into()
+        }).into()
   }
 
   async fn delete_todo(&self, todo_id: &i64) -> Response {

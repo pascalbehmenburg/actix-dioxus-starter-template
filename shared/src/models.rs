@@ -11,6 +11,7 @@ pub struct Todo {
   pub title: String,
   pub description: String,
   pub is_done: bool,
+  pub owner: i64,
   pub created_at: chrono::DateTime<chrono::Utc>,
   pub updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -21,6 +22,7 @@ pub struct Todo {
 pub struct CreateTodo {
   pub title: String,
   pub description: String,
+  pub owner: i64,
 }
 
 // TODO: Think about optional values
@@ -32,6 +34,7 @@ pub struct UpdateTodo {
   pub title: String,
   pub description: String,
   pub is_done: bool,
+  pub owner: i64,
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]

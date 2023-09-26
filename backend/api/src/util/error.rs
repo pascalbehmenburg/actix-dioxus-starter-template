@@ -46,6 +46,7 @@ impl Error {
   pub fn http_status_code(&self) -> StatusCode {
     match self {
       Error::CustomHTTPResponse(status_code, _) => *status_code,
+      Error::ActixWebServerError(e) => e.as_response_error().status_code(),
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     }
   }
