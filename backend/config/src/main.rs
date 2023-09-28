@@ -7,8 +7,11 @@ use actix_web::{
 };
 
 use api::{
-  repository::{todo, user, PostgresTodoRepository, PostgresUserRepository},
-  util::PostgresSessionStore,
+  repository::{
+    todo::{self, PostgresTodoRepository},
+    user::{self, PostgresUserRepository},
+  },
+  util::session_store::PostgresSessionStore,
 };
 use shuttle_actix_web::ShuttleActixWeb;
 

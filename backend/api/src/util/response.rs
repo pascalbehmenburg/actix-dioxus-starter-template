@@ -7,25 +7,25 @@ use actix_web::{
 };
 use serde::Serialize;
 
-use crate::util::body::Body;
+use crate::util::body::JsonBody;
 use crate::util::error::Error;
-pub struct Response(pub Result<Body, Error>);
+pub struct JsonResponse(pub Result<JsonBody, Error>);
 
-impl AsRef<Result<Body, Error>> for Response {
-  fn as_ref(&self) -> &Result<Body, Error> {
+impl AsRef<Result<JsonBody, Error>> for JsonResponse {
+  fn as_ref(&self) -> &Result<JsonBody, Error> {
     &self.0
   }
 }
 
-impl Deref for Response {
-  type Target = Result<Body, Error>;
+impl Deref for JsonResponse {
+  type Target = Result<JsonBody, Error>;
 
   fn deref(&self) -> &Self::Target {
     &self.0
   }
 }
 
-impl Responder for Response {
+impl Responder for JsonResponse {
   type Body = EitherBody<String>;
 
   fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
@@ -33,7 +33,7 @@ impl Responder for Response {
     match result {
       Ok(json_body) => match HttpResponse::Ok()
         .content_type(ContentType::json())
-        .message_body(json_body.as_ref().to_string())
+        .message_body(json_body.0.to_string())
       {
         Ok(res) => res.map_into_left_body(),
         Err(e) => Error::ActixWebServerError(e)
@@ -50,7 +50,7 @@ impl Responder for Response {
 // of an error. Therefore we implement a conversion from Result<S, E> where E
 // implements Into<Error> to JsonResponse. This allows us to use the ? operator
 // in the async functions of the repositories.
-impl<S: Serialize, E: Into<Error>> From<Result<S, E>> for Response {
+impl<S: Serialize, E: Into<Error>> From<Result<S, E>> for JsonResponse {
   fn from(result: Result<S, E>) -> Self {
     match result {
       Ok(body) => match serde_json::to_value(body) {
@@ -64,9 +64,9 @@ impl<S: Serialize, E: Into<Error>> From<Result<S, E>> for Response {
 
 // Generic FromResidual Implementation for all types that implement Into<JsonBody>
 // and Into<Error> which allows one to use the ? operator in the async functions
-impl<O, E> FromResidual<std::result::Result<O, E>> for Response
+impl<O, E> FromResidual<std::result::Result<O, E>> for JsonResponse
 where
-  O: Into<Body>,
+  O: Into<JsonBody>,
   E: Into<Error>,
 {
   fn from_residual(residual: std::result::Result<O, E>) -> Self {
@@ -77,8 +77,8 @@ where
   }
 }
 
-impl Try for Response {
-  type Output = Body;
+impl Try for JsonResponse {
+  type Output = JsonBody;
   type Residual = Result<std::convert::Infallible, Error>;
 
   fn from_output(output: Self::Output) -> Self {

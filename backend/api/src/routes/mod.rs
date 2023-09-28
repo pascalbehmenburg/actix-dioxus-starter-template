@@ -1,6 +1,6 @@
 use actix_identity::Identity;
 
-use crate::util::Error;
+use crate::util::error::Error;
 
 pub mod health;
 pub mod todo;

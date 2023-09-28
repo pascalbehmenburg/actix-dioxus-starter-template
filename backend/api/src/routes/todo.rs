@@ -1,8 +1,8 @@
+use crate::repository::todo::TodoRepository;
+use crate::{routes, util::response::JsonResponse};
 use actix_identity::Identity;
 use actix_web::web::{self, ServiceConfig};
 use shared::models::{CreateTodoForm, Todo, UpdateTodo};
-
-use crate::{repository::TodoRepository, routes, util::Response};
 
 pub fn service<R: TodoRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
@@ -20,14 +20,14 @@ pub fn service<R: TodoRepository>(cfg: &mut ServiceConfig) {
   );
 }
 
-async fn get_all<R: TodoRepository>(repo: web::Data<R>) -> Response {
+async fn get_all<R: TodoRepository>(repo: web::Data<R>) -> JsonResponse {
   repo.get_todos().await
 }
 
 async fn get<R: TodoRepository>(
   todo_id: web::Path<i64>,
   repo: web::Data<R>,
-) -> Response {
+) -> JsonResponse {
   repo.get_todo(&todo_id).await
 }
 
@@ -35,7 +35,7 @@ async fn post<R: TodoRepository>(
   create_todo_form: web::Json<CreateTodoForm>,
   repo: web::Data<R>,
   user: Identity,
-) -> Response {
+) -> JsonResponse {
   let idenity_id = routes::get_identity_id(user).await?;
   tracing::info!("identity_id: {}", idenity_id);
   let todo: Todo =
@@ -48,7 +48,7 @@ async fn put<R: TodoRepository>(
   update_todo: web::Json<UpdateTodo>,
   repo: web::Data<R>,
   user: Identity,
-) -> Response {
+) -> JsonResponse {
   let update_todo = UpdateTodo {
     owner: routes::get_identity_id(user).await?,
     ..update_todo.into_inner()
@@ -60,6 +60,6 @@ async fn put<R: TodoRepository>(
 async fn delete<R: TodoRepository>(
   todo_id: web::Path<i64>,
   repo: web::Data<R>,
-) -> Response {
+) -> JsonResponse {
   repo.delete_todo(&todo_id).await
 }

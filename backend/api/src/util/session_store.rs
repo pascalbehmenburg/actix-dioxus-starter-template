@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, num::ParseIntError};
 
 use actix_session::storage::{
   LoadError, SaveError, SessionKey, SessionStore, UpdateError,
@@ -7,7 +7,7 @@ use actix_web::cookie::time::Duration;
 use rand::{distributions::Alphanumeric, rngs::OsRng, Rng};
 use shared::models::Session;
 
-pub(crate) type SessionState = HashMap<String, String>;
+pub type SessionState = HashMap<String, String>;
 
 #[derive(Clone)]
 pub struct PostgresSessionStore {
@@ -20,25 +20,30 @@ impl PostgresSessionStore {
   }
 }
 
+async fn user_id_str_as_i64(user_id: &str) -> Result<i64, ParseIntError> {
+  let chars_to_trim: &[char] = &['"', '\\'];
+  let user_id: &str = user_id.trim_matches(chars_to_trim);
+  user_id.parse::<i64>()
+}
+
 #[async_trait::async_trait(?Send)]
 impl SessionStore for PostgresSessionStore {
   async fn load(
     &self,
     session_key: &SessionKey,
   ) -> Result<Option<SessionState>, LoadError> {
-    tracing::info!("session_key: {:?}", session_key.as_ref());
     match sqlx::query_as::<_, Session>(
-      "SELECT * FROM sessions WHERE session_key = $1",
+      r#"SELECT * FROM sessions WHERE session_key = $1"#,
     )
     .bind(session_key.as_ref())
-    .fetch_optional(&self.pool)
+    .fetch_one(&self.pool)
     .await
     {
-      Ok(session) => {
-        tracing::info!("session: {:?}", session);
-        Ok(session.map(From::from))
-      }
-      Err(e) => Err(LoadError::Other(e.into())),
+      Ok(session) => Ok(Some({
+        let session = <HashMap<String, String>>::from(session);
+        session
+      })),
+      Err(e) => Err(LoadError::Deserialization(e.into())),
     }
   }
 
@@ -47,18 +52,21 @@ impl SessionStore for PostgresSessionStore {
     session_state: SessionState,
     _ttl: &Duration,
   ) -> Result<SessionKey, SaveError> {
-    let session_key = generate_session_key();
-    tracing::info!("session_state: {:?}", session_state);
+    let session_key = generate_session_key().await;
+
+    let user_id = session_state["actix_identity.user_id"].clone();
+    let user_id = user_id_str_as_i64(&user_id)
+      .await
+      .map_err(|e| SaveError::Serialization(e.into()))?;
     match sqlx::query_as::<_, Session>(
-      r#"
-                INSERT INTO sessions (session_key, device)
+      r#"INSERT INTO sessions (session_key, user_id)
                 VALUES ($1, $2)
-                RETURNING id, session_key, device, created_at, updated_at
+                RETURNING *
                 "#,
     )
     .bind(session_key.as_ref())
-    .bind(&session_state["device"])
-    .fetch_one(&self.pool)
+    .bind(&user_id) // 1
+    .fetch_one(&self.pool) // 6
     .await
     {
       Ok(session) => Ok(
@@ -68,29 +76,33 @@ impl SessionStore for PostgresSessionStore {
           .map_err(Into::into)
           .map_err(SaveError::Other)?,
       ),
+
       Err(e) => Err(SaveError::Serialization(e.into())),
     }
   }
 
   async fn update(
     &self,
-    _session_key: SessionKey,
+    session_key: SessionKey,
     session_state: SessionState,
     _ttl: &Duration,
   ) -> Result<SessionKey, UpdateError> {
-    // TODO: check if this is the intended behaviour
+    let user_id = &session_state["actix_identity.user_id"];
+    let user_id = user_id_str_as_i64(user_id)
+      .await
+      .map_err(|e| UpdateError::Serialization(e.into()))?;
+
     match sqlx::query_as::<_, Session>(
       r#"
-                UPDATE sessions
-                SET session_key = $1, device = $2, updated_at = NOW()
-                WHERE session_key = $3
-                RETURNING id, session_key, device, created_at, updated_at
-                "#,
+            UPDATE sessions
+            SET session_key = $1, user_id = $2
+            WHERE session_key = $1
+            RETURNING *
+            "#,
     )
-    .bind(&session_state["session_key"])
-    .bind(&session_state["device"])
-    .bind(_session_key.as_ref())
-    .fetch_one(&self.pool)
+    .bind(session_key.as_ref())
+    .bind(&user_id) // 1
+    .fetch_one(&self.pool) // 6
     .await
     {
       Ok(session) => Ok(
@@ -100,6 +112,7 @@ impl SessionStore for PostgresSessionStore {
           .map_err(Into::into)
           .map_err(UpdateError::Other)?,
       ),
+
       Err(e) => Err(UpdateError::Serialization(e.into())),
     }
   }
@@ -114,13 +127,26 @@ impl SessionStore for PostgresSessionStore {
   // TODO: give the user the option to end a session via logout / list of devices that are logged in
   async fn delete(
     &self,
-    _session_key: &SessionKey,
+    session_key: &SessionKey,
   ) -> Result<(), anyhow::Error> {
-    Ok(())
+    match sqlx::query_as::<_, Session>(
+      // how do I delete row where session_key = $1
+      r#"
+          DELETE FROM sessions
+          WHERE session_key = $1
+          "#,
+    )
+    .bind(session_key.as_ref()) // 1
+    .fetch_optional(&self.pool)
+    .await
+    {
+      Ok(_) => Ok(()),
+      Err(e) => Err(anyhow::anyhow!("Error deleting session: {:?}", e)),
+    }
   }
 }
 /// sample 256 bit of data from alphanumeric distribution
-fn generate_session_key() -> SessionKey {
+async fn generate_session_key() -> SessionKey {
   let value = std::iter::repeat(())
     .map(|()| OsRng.sample(Alphanumeric))
     .take(64)

@@ -1,15 +1,15 @@
 use shared::models::{CreateUser, UpdateUser, User};
 
-use crate::util::Response;
+use crate::util::response::JsonResponse;
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync + 'static {
-  async fn get_users(&self) -> Response;
-  async fn get_user_by_id(&self, id: &i64) -> Response;
-  async fn get_user_by_email(&self, email: &str) -> Response;
-  async fn create_user(&self, create_user: &CreateUser) -> Response;
-  async fn update_user(&self, update_user: &UpdateUser) -> Response;
-  async fn delete_user(&self, id: &i64) -> Response;
+  async fn get_users(&self) -> JsonResponse;
+  async fn get_user_by_id(&self, id: &i64) -> JsonResponse;
+  async fn get_user_by_email(&self, email: &str) -> JsonResponse;
+  async fn create_user(&self, create_user: &CreateUser) -> JsonResponse;
+  async fn update_user(&self, update_user: &UpdateUser) -> JsonResponse;
+  async fn delete_user(&self, id: &i64) -> JsonResponse;
 }
 
 pub struct PostgresUserRepository {
@@ -24,7 +24,7 @@ impl PostgresUserRepository {
 
 #[async_trait::async_trait]
 impl UserRepository for PostgresUserRepository {
-  async fn get_users(&self) -> Response {
+  async fn get_users(&self) -> JsonResponse {
     sqlx::query_as::<_, User>(
             "SELECT id, name, email, password, created_at, updated_at FROM users ORDER BY id",
         )
@@ -33,7 +33,7 @@ impl UserRepository for PostgresUserRepository {
         .into()
   }
 
-  async fn get_user_by_email(&self, email: &str) -> Response {
+  async fn get_user_by_email(&self, email: &str) -> JsonResponse {
     sqlx::query_as::<_, User>(
       r#"
                 SELECT id, name, email, password, created_at, updated_at
@@ -47,7 +47,7 @@ impl UserRepository for PostgresUserRepository {
     .into()
   }
 
-  async fn get_user_by_id(&self, user_id: &i64) -> Response {
+  async fn get_user_by_id(&self, user_id: &i64) -> JsonResponse {
     sqlx::query_as::<_, User>(
       r#"
                 SELECT id, name, email, password, created_at, updated_at
@@ -61,7 +61,7 @@ impl UserRepository for PostgresUserRepository {
     .into()
   }
 
-  async fn create_user(&self, create_user: &CreateUser) -> Response {
+  async fn create_user(&self, create_user: &CreateUser) -> JsonResponse {
     sqlx::query_as::<_, User>(
       r#"
                 INSERT INTO users (name, email, password)
@@ -77,7 +77,7 @@ impl UserRepository for PostgresUserRepository {
     .into()
   }
 
-  async fn update_user(&self, update_user: &UpdateUser) -> Response {
+  async fn update_user(&self, update_user: &UpdateUser) -> JsonResponse {
     sqlx::query_as::<_, User>(
       r#"
                 UPDATE users
@@ -95,7 +95,7 @@ impl UserRepository for PostgresUserRepository {
     .into()
   }
 
-  async fn delete_user(&self, user_id: &i64) -> Response {
+  async fn delete_user(&self, user_id: &i64) -> JsonResponse {
     sqlx::query_scalar::<_, i64>(
       r#"
                 DELETE FROM users

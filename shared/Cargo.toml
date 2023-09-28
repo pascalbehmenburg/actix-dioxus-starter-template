@@ -18,7 +18,7 @@ sqlx = { version = "0.7.1", default-features = false, optional = true, features 
     "json",
 ] }
 derive_more = "0.99"
-actix-web = "4.3.1"
-
+actix-web = { version = "4.3.1", features = ["rustls"] }
+serde_json = "1.0"
 [features]
 backend = ["sqlx"]

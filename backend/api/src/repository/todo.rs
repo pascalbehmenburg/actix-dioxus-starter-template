@@ -1,15 +1,15 @@
 use actix_http::StatusCode;
 use shared::models::{Todo, UpdateTodo};
 
-use crate::util::{Error, Response};
+use crate::util::{error::Error, response::JsonResponse};
 
 #[async_trait::async_trait]
 pub trait TodoRepository: Send + Sync + 'static {
-  async fn get_todos(&self) -> Response;
-  async fn get_todo(&self, id: &i64) -> Response;
-  async fn create_todo(&self, create_todo: &Todo) -> Response;
-  async fn update_todo(&self, update_todo: &UpdateTodo) -> Response;
-  async fn delete_todo(&self, id: &i64) -> Response;
+  async fn get_todos(&self) -> JsonResponse;
+  async fn get_todo(&self, id: &i64) -> JsonResponse;
+  async fn create_todo(&self, create_todo: &Todo) -> JsonResponse;
+  async fn update_todo(&self, update_todo: &UpdateTodo) -> JsonResponse;
+  async fn delete_todo(&self, id: &i64) -> JsonResponse;
 }
 
 pub struct PostgresTodoRepository {
@@ -24,7 +24,7 @@ impl PostgresTodoRepository {
 
 #[async_trait::async_trait]
 impl TodoRepository for PostgresTodoRepository {
-  async fn get_todos(&self) -> Response {
+  async fn get_todos(&self) -> JsonResponse {
     sqlx::query_as::<_,Todo>(
             "SELECT id, title, description, is_done, owner, created_at, updated_at FROM todos ORDER BY id",
         )
@@ -33,7 +33,7 @@ impl TodoRepository for PostgresTodoRepository {
         .into()
   }
 
-  async fn get_todo(&self, todo_id: &i64) -> Response {
+  async fn get_todo(&self, todo_id: &i64) -> JsonResponse {
     sqlx::query_as::<_, Todo>(
       r#"
                 SELECT id, title, description, is_done, owner, created_at, updated_at
@@ -47,7 +47,7 @@ impl TodoRepository for PostgresTodoRepository {
     .into()
   }
 
-  async fn create_todo(&self, todo: &Todo) -> Response {
+  async fn create_todo(&self, todo: &Todo) -> JsonResponse {
     sqlx::query_as::<_, Todo>(
             r#"
                 INSERT INTO todos (title, description)
@@ -62,7 +62,7 @@ impl TodoRepository for PostgresTodoRepository {
         .into()
   }
 
-  async fn update_todo(&self, update_todo: &UpdateTodo) -> Response {
+  async fn update_todo(&self, update_todo: &UpdateTodo) -> JsonResponse {
     sqlx::query_as::<_, Todo>(
             r#"
                 UPDATE todos
@@ -84,7 +84,7 @@ impl TodoRepository for PostgresTodoRepository {
         }).into()
   }
 
-  async fn delete_todo(&self, todo_id: &i64) -> Response {
+  async fn delete_todo(&self, todo_id: &i64) -> JsonResponse {
     sqlx::query_scalar::<_, i64>(
       r#"
                 DELETE FROM todos

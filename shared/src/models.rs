@@ -19,10 +19,23 @@ pub struct Todo {
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
-pub struct CreateTodo {
+pub struct CreateTodoForm {
   pub title: String,
   pub description: String,
-  pub owner: i64,
+}
+
+impl Todo {
+  pub fn create_todo_with_owner(
+    create_todo_form: CreateTodoForm,
+    owner: i64,
+  ) -> Self {
+    Self {
+      title: create_todo_form.title,
+      description: create_todo_form.description,
+      owner,
+      ..Default::default()
+    }
+  }
 }
 
 // TODO: Think about optional values
@@ -82,21 +95,32 @@ pub struct LoginUser {
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
 pub struct Session {
-  pub id: i64,
   pub session_key: String,
-  pub device: String,
-  pub created_at: chrono::DateTime<chrono::Utc>,
-  pub updated_at: chrono::DateTime<chrono::Utc>,
+  pub user_id: i64,
 }
 
+impl From<HashMap<String, String>> for Session {
+  fn from(value: HashMap<String, String>) -> Self {
+    Self {
+      session_key: value["session_key"].clone(),
+      user_id: value["actix_identity.user_id"]
+        .clone()
+        .parse::<i64>()
+        .unwrap(),
+    }
+  }
+}
+
+// TODO: rather rudimentary implementation rework consider macro use or smth else
+// so one cannot forget to change this conversion when adding new fields
 impl From<Session> for HashMap<String, String> {
   fn from(value: Session) -> Self {
     let mut map = HashMap::new();
-    map.insert("id".to_string(), value.id.to_string());
-    map.insert("session_key".to_string(), value.session_key.to_string());
-    map.insert("device".to_string(), value.device);
-    map.insert("created_at".to_string(), value.created_at.to_string());
-    map.insert("updated_at".to_string(), value.updated_at.to_string());
+    map.insert("session_key".to_string(), value.session_key);
+    map.insert(
+      "actix_identity.user_id".to_string(),
+      value.user_id.to_string(),
+    );
     map
   }
 }
