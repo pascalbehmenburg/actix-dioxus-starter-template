@@ -24,7 +24,7 @@ Content-Type: application/json
 }
 
 ### get all todos
-GET {{host}}/v1/todos HTTP/1.1
+GET http://localhost:8000/api/v1/todos HTTP/1.1
 
 ### get todo
 GET {{host}}/v1/todos/{{todo_id}} HTTP/1.1

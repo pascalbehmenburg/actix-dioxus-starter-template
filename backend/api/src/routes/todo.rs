@@ -36,11 +36,15 @@ async fn post<R: TodoRepository>(
   repo: web::Data<R>,
   user: Identity,
 ) -> JsonResponse {
-  let idenity_id = routes::get_identity_id(user).await?;
-  tracing::info!("identity_id: {}", idenity_id);
-  let todo: Todo =
-    Todo::create_todo_with_owner(create_todo_form.into_inner(), idenity_id);
-  tracing::info!("todo: {}", idenity_id);
+  let owner = routes::get_identity_id(user).await?;
+
+  let todo = Todo {
+    title: create_todo_form.title.clone(),
+    description: create_todo_form.description.clone(),
+    owner,
+    ..Default::default()
+  };
+
   repo.create_todo(&todo).await
 }
 
@@ -49,8 +53,9 @@ async fn put<R: TodoRepository>(
   repo: web::Data<R>,
   user: Identity,
 ) -> JsonResponse {
+  let owner = routes::get_identity_id(user).await?;
   let update_todo = UpdateTodo {
-    owner: routes::get_identity_id(user).await?,
+    owner: owner,
     ..update_todo.into_inner()
   };
 

@@ -40,21 +40,19 @@ async fn login<R: UserRepository>(
   repo: web::Data<R>,
 ) -> JsonResponse {
   let user_val = repo.get_user_by_email(&login_user.email).await?.0;
-  let user: User = serde_json::from_value(user_val.clone())?;
-  println!("trying to log in user with id: {:?}", user.id);
-  // get the password hash from the database
+  let user = serde_json::from_value::<User>(user_val.clone())?;
+
   let argon2 = Argon2::default();
   let parsed_hash = PasswordHash::new(&user.password)?;
 
-  // verify the password hash from server with the one from the request
   if argon2
     .verify_password(login_user.password.as_bytes(), &parsed_hash)
     .is_ok()
   {
-    // identity middleware login
-    let identity = Identity::login(&request.extensions(), user.id.to_string())
-      .map_err(|e| Error::ActixWebServerError(e.into()))?;
-    println!("actix_identity.user_id: {:?}", identity.id());
+    Identity::login(&request.extensions(), user.id.to_string())
+      .map_err(Into::into)
+      .map_err(Error::ActixWebServerError)?;
+
     JsonResponse(Ok(JsonBody(user_val)))
   } else {
     JsonResponse(Err(Error::CustomHTTPResponse(

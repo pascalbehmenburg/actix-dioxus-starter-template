@@ -114,12 +114,12 @@ impl From<HashMap<String, String>> for Session {
 // TODO: rather rudimentary implementation rework consider macro use or smth else
 // so one cannot forget to change this conversion when adding new fields
 impl From<Session> for HashMap<String, String> {
-  fn from(value: Session) -> Self {
+  fn from(session: Session) -> Self {
     let mut map = HashMap::new();
-    map.insert("session_key".to_string(), value.session_key);
+    map.insert("session_key".to_string(), session.session_key);
     map.insert(
       "actix_identity.user_id".to_string(),
-      value.user_id.to_string(),
+      session.user_id.to_string(),
     );
     map
   }

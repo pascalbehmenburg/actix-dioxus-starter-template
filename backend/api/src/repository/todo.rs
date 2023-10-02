@@ -49,17 +49,18 @@ impl TodoRepository for PostgresTodoRepository {
 
   async fn create_todo(&self, todo: &Todo) -> JsonResponse {
     sqlx::query_as::<_, Todo>(
-            r#"
-                INSERT INTO todos (title, description)
-                VALUES ($1, $2)
-                RETURNING id, title, description, owner, is_done, created_at, updated_at
+      r#"
+                INSERT INTO todos (title, description, owner)
+                VALUES ($1, $2, $3)
+                RETURNING *
                 "#,
-        )
-        .bind(&todo.title)
-        .bind(&todo.description)
-        .fetch_one(&self.pool)
-        .await
-        .into()
+    )
+    .bind(&todo.title)
+    .bind(&todo.description)
+    .bind(&todo.owner)
+    .fetch_one(&self.pool)
+    .await
+    .into()
   }
 
   async fn update_todo(&self, update_todo: &UpdateTodo) -> JsonResponse {

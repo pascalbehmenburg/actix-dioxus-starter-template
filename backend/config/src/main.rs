@@ -7,11 +7,11 @@ use actix_web::{
 };
 
 use api::{
+  repository::session::PostgresSessionRepository,
   repository::{
     todo::{self, PostgresTodoRepository},
     user::{self, PostgresUserRepository},
   },
-  util::session_store::PostgresSessionStore,
 };
 use shuttle_actix_web::ShuttleActixWeb;
 
@@ -32,7 +32,7 @@ async fn actix_web(
   let user_repository = user::PostgresUserRepository::new(pool.clone());
   let user_repository = actix_web::web::Data::new(user_repository);
 
-  let session_store = PostgresSessionStore::new(pool.clone());
+  let session_store = PostgresSessionRepository::new(pool.clone());
   let signing_key = Key::from(dotenv!("SIGNING_KEY").as_bytes());
 
   let config = move |cfg: &mut ServiceConfig| {

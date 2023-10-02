@@ -22,3 +22,6 @@ api/shuttle/.env
 
 # vs code configurations
 .vscode/
+
+# rustrover config
+.idea/
