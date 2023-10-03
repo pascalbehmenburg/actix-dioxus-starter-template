@@ -76,8 +76,9 @@ impl SessionRepository for PostgresSessionRepository {
     session_state: &serde_json::Value,
   ) -> Result<(), sqlx::Error> {
     sqlx::query(
-      r#"INSERT INTO sessions (key, state)
-        VALUES ($1, $2)
+      r#"INSERT
+      INTO sessions (key, state)
+      VALUES ($1, $2)
       "#,
     )
     .bind::<&str>(session_key.as_ref())
@@ -93,10 +94,11 @@ impl SessionRepository for PostgresSessionRepository {
     session_state: &serde_json::Value,
   ) -> Result<(), sqlx::Error> {
     sqlx::query(
-      r#"UPDATE sessions
-              SET key = $1, state = $2
-              WHERE key = $1
-              "#,
+      r#"
+      UPDATE sessions
+      SET key = $1, state = $2
+      WHERE key = $1
+      "#,
     )
     .bind::<&str>(session_key.as_ref())
     .bind::<&serde_json::Value>(session_state)
@@ -110,9 +112,11 @@ impl SessionRepository for PostgresSessionRepository {
     session_key: &SessionKey,
   ) -> Result<(), sqlx::Error> {
     sqlx::query(
-      r#"DELETE FROM sessions
-              WHERE key = $1
-              "#,
+      r#"
+      DELETE
+      FROM sessions
+      WHERE key = $1
+      "#,
     )
     .bind::<&str>(session_key.as_ref())
     .execute(&self.pool)

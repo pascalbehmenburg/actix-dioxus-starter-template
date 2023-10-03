@@ -60,10 +60,9 @@ pub struct CreateUser {
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
 pub struct UpdateUser {
-  pub id: i64,
-  pub name: String,
-  pub email: String,
-  pub password: String,
+  pub name: Option<String>,
+  pub email: Option<String>,
+  pub password: Option<String>,
 }
 
 #[derive(

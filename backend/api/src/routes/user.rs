@@ -19,16 +19,15 @@ use crate::{
 pub fn service<R: UserRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
     web::scope("/v1/users")
-      // get by id
+      // get user by identity id
       .route("", web::get().to(get::<R>))
-      // new
+      // register - creates user (redirect needs to be done in frontend)
       .route("/register", web::post().to(post::<R>))
-      // update
+      // update user associated with sent identity id
       .route("", web::put().to(put::<R>))
-      // TODO user should not fuck himself
-      // delete
+      // delete's user associated with sent identity id
       .route("", web::delete().to(delete::<R>))
-      // login
+      // login -  creates session and sets identity id
       .route("/login", web::post().to(login::<R>)),
   );
 }

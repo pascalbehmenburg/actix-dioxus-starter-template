@@ -97,17 +97,17 @@ impl UserRepository for PostgresUserRepository {
       r#"
       UPDATE users
       SET 
-        name = $1,
-        email = $2,
-        password = $3,
+        name = COALESCE($1, name),
+        email = COALESCE($2, email),
+        password = COALESCE($3, password),
         updated_at = now()
       WHERE id = $4
       RETURNING *
       "#,
     )
-    .bind::<&str>(&update_user.name)
-    .bind::<&str>(&update_user.email)
-    .bind::<&str>(&update_user.password)
+    .bind::<&Option<String>>(&update_user.name)
+    .bind::<&Option<String>>(&update_user.email)
+    .bind::<&Option<String>>(&update_user.password)
     .bind::<&i64>(session_user_id)
     .fetch_one(&self.pool)
     .await
