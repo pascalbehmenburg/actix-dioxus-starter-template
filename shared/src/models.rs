@@ -19,35 +19,19 @@ pub struct Todo {
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
-pub struct CreateTodoForm {
+pub struct CreateTodo {
   pub title: String,
   pub description: String,
 }
 
-impl Todo {
-  pub fn create_todo_with_owner(
-    create_todo_form: CreateTodoForm,
-    owner: i64,
-  ) -> Self {
-    Self {
-      title: create_todo_form.title,
-      description: create_todo_form.description,
-      owner,
-      ..Default::default()
-    }
-  }
-}
-
-// TODO: Think about optional values
 #[derive(
   Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default,
 )]
 pub struct UpdateTodo {
   pub id: i64,
-  pub title: String,
-  pub description: String,
-  pub is_done: bool,
-  pub owner: i64,
+  pub title: Option<String>,
+  pub description: Option<String>,
+  pub is_done: Option<bool>,
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]

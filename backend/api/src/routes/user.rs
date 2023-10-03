@@ -19,16 +19,15 @@ use crate::{
 pub fn service<R: UserRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
     web::scope("/v1/users")
-      // get all
-      .route("", web::get().to(get_all::<R>))
       // get by id
-      .route("/{user_id}", web::get().to(get::<R>))
+      .route("", web::get().to(get::<R>))
       // new
       .route("/register", web::post().to(post::<R>))
       // update
       .route("", web::put().to(put::<R>))
+      // TODO user should not fuck himself
       // delete
-      .route("/{user_id}", web::delete().to(delete::<R>))
+      .route("", web::delete().to(delete::<R>))
       // login
       .route("/login", web::post().to(login::<R>)),
   );
@@ -62,15 +61,13 @@ async fn login<R: UserRepository>(
   }
 }
 
-async fn get_all<R: UserRepository>(repo: web::Data<R>) -> JsonResponse {
-  repo.get_users().await
-}
-
 async fn get<R: UserRepository>(
-  user_id: web::Path<i64>,
   repo: web::Data<R>,
+  user: Identity,
 ) -> JsonResponse {
-  repo.get_user_by_id(&user_id).await
+  let session_user_id = super::get_identity_id(user).await?;
+
+  repo.get_session_user(&session_user_id).await
 }
 
 async fn post<R: UserRepository>(
@@ -96,13 +93,17 @@ async fn post<R: UserRepository>(
 async fn put<R: UserRepository>(
   update_user: web::Json<UpdateUser>,
   repo: web::Data<R>,
+  user: Identity,
 ) -> JsonResponse {
-  repo.update_user(&update_user).await
+  let session_user_id = super::get_identity_id(user).await?;
+
+  repo.update_user(&update_user, &session_user_id).await
 }
 
 async fn delete<R: UserRepository>(
-  user_id: web::Path<i64>,
   repo: web::Data<R>,
+  user: Identity,
 ) -> JsonResponse {
-  repo.delete_user(&user_id).await
+  let session_user_id = super::get_identity_id(user).await?;
+  repo.delete_user(&session_user_id).await
 }
