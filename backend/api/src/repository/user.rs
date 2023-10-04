@@ -1,7 +1,10 @@
-use actix_http::StatusCode;
 use shared::models::{CreateUser, UpdateUser, User};
 
-use crate::util::{error::Error, response::JsonResponse};
+use crate::util::response::JsonResponse;
+
+use super::error::{Operation, RepositoryError};
+
+const RELATION: &'static str = "User";
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync + 'static {
@@ -45,10 +48,17 @@ impl UserRepository for PostgresUserRepository {
     .bind::<&str>(email)
     .fetch_one(&self.pool)
     .await
+    .map_err(|e| match e {
+      sqlx::Error::RowNotFound => RepositoryError::NotFound {
+        relation_name: RELATION.to_string(),
+      },
+      _ => RepositoryError::Other(e.into()),
+    })
     .into()
   }
 
   async fn get_session_user(&self, session_user_id: &i64) -> JsonResponse {
+    // this should literally not be possible to fail as long as the Database is online
     sqlx::query_as::<_, User>(
       r#"
       SELECT *
@@ -59,14 +69,8 @@ impl UserRepository for PostgresUserRepository {
     .bind::<&i64>(session_user_id)
     .fetch_one(&self.pool)
     .await
-    .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the user data you are trying to receive."
-          .to_string(),
-      ),
-      _ => e.into(),
-    })
+    .map_err(Into::into)
+    .map_err(RepositoryError::Other)
     .into()
   }
 
@@ -84,6 +88,8 @@ impl UserRepository for PostgresUserRepository {
     .bind::<&str>(&create_user.password)
     .fetch_one(&self.pool)
     .await
+    .map_err(Into::into)
+    .map_err(RepositoryError::Other)
     .into()
   }
 
@@ -112,12 +118,11 @@ impl UserRepository for PostgresUserRepository {
     .fetch_one(&self.pool)
     .await
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the user you are trying to modify."
-          .to_string(),
-      ),
-      _ => e.into(),
+      sqlx::Error::RowNotFound => RepositoryError::Forbidden {
+        operation: Operation::Update,
+        relation_name: RELATION.to_string(),
+      },
+      e => RepositoryError::Other(e.into()),
     })
     .into()
   }
@@ -135,11 +140,10 @@ impl UserRepository for PostgresUserRepository {
     .await
     .map(|_| ())
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the user you tried to delete.".to_string(),
-      ),
-      _ => e.into(),
+      sqlx::Error::RowNotFound => RepositoryError::NotFound {
+        relation_name: RELATION.to_string(),
+      },
+      e => RepositoryError::Other(e.into()),
     })
     .into()
   }

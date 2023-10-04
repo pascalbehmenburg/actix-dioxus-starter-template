@@ -1,7 +1,9 @@
-use actix_http::StatusCode;
 use shared::models::{CreateTodo, Todo, UpdateTodo};
 
-use crate::util::{error::Error, response::JsonResponse};
+use super::error::{Operation, RepositoryError};
+use crate::util::response::JsonResponse;
+
+const RELATION: &'static str = "Todo";
 
 #[async_trait::async_trait]
 pub trait TodoRepository: Send + Sync + 'static {
@@ -52,12 +54,10 @@ impl TodoRepository for PostgresTodoRepository {
     .fetch_all(&self.pool)
     .await
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "It seems like you created no todos yet, try to create one."
-          .to_string(),
-      ),
-      _ => e.into(),
+      sqlx::Error::RowNotFound => RepositoryError::NotFound {
+        relation_name: RELATION.to_string(),
+      },
+      _ => RepositoryError::Other(e.into()),
     })
     .into()
   }
@@ -67,11 +67,11 @@ impl TodoRepository for PostgresTodoRepository {
     todo_id: &i64,
     session_user_id: &i64,
   ) -> JsonResponse {
-    sqlx::query_as::<_, Todo>(
+    let todo: Todo = sqlx::query_as::<_, Todo>(
       r#"
       SELECT *
       FROM todos
-      WHERE id = $1 and owner = $2
+      WHERE id = $1
       "#,
     )
     .bind::<&i64>(todo_id)
@@ -79,13 +79,22 @@ impl TodoRepository for PostgresTodoRepository {
     .fetch_one(&self.pool)
     .await
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the todo you are trying to receive."
-          .to_string(),
-      ),
-      _ => e.into(),
-    })
+      sqlx::Error::RowNotFound => RepositoryError::NotFound {
+        relation_name: RELATION.to_string(),
+      },
+      e => RepositoryError::Other(e.into()),
+    })?;
+
+    // check if session user that made the request
+    // is the actual owner of the todo that was requested
+    if todo.owner == *session_user_id {
+      Ok(todo)
+    } else {
+      Err(RepositoryError::Forbidden {
+        operation: Operation::Receive,
+        relation_name: RELATION.to_string(),
+      })
+    }
     .into()
   }
 
@@ -107,6 +116,8 @@ impl TodoRepository for PostgresTodoRepository {
     .bind::<&i64>(session_user_id)
     .fetch_one(&self.pool)
     .await
+    .map_err(Into::into)
+    .map_err(RepositoryError::Other)
     .into()
   }
 
@@ -115,6 +126,7 @@ impl TodoRepository for PostgresTodoRepository {
     update_todo: &UpdateTodo,
     session_user_id: &i64,
   ) -> JsonResponse {
+    // TODO
     sqlx::query_as::<_, Todo>(
       r#"
       UPDATE todos
@@ -135,12 +147,11 @@ impl TodoRepository for PostgresTodoRepository {
     .fetch_one(&self.pool)
     .await
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the todo you are trying to modify."
-          .to_string(),
-      ),
-      _ => e.into(),
+      sqlx::Error::RowNotFound => RepositoryError::Forbidden {
+        operation: Operation::Update,
+        relation_name: RELATION.to_string(),
+      },
+      e => RepositoryError::Other(e.into()),
     })
     .into()
   }
@@ -163,11 +174,11 @@ impl TodoRepository for PostgresTodoRepository {
     .await
     .map(|_| ())
     .map_err(|e| match e {
-      sqlx::Error::RowNotFound => Error::CustomHTTPResponse(
-        StatusCode::FORBIDDEN,
-        "You are not the owner of the todo you tried to delete.".to_string(),
-      ),
-      _ => e.into(),
+      sqlx::Error::RowNotFound => RepositoryError::Forbidden {
+        operation: Operation::Delete,
+        relation_name: RELATION.to_string(),
+      },
+      _ => RepositoryError::Other(e.into()),
     })
     .into()
   }

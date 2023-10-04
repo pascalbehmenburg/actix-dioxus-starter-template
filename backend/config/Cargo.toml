@@ -12,10 +12,10 @@ actix-session = "0.8.0"
 actix-identity = "0.6.0"
 
 tokio = "1.26.0"
-shuttle-runtime = "0.27.0"
-shuttle-actix-web = "0.27.0"
-shuttle-shared-db = { version = "0.27.0", features = ["postgres-rustls"] }
-shuttle-static-folder = "0.27.0"
+shuttle-runtime = "0.28.0"
+shuttle-actix-web = "0.28.0"
+shuttle-shared-db = { version = "0.28.0", features = ["postgres-rustls"] }
+shuttle-static-folder = "0.28.0"
 
 sqlx = { version = "0.7.1", default-features = false, features = [
     "runtime-tokio",
@@ -26,10 +26,15 @@ sqlx = { version = "0.7.1", default-features = false, features = [
     "chrono",
     "json",
 ] }
-tracing = "0.1.27"
 api = { path = "../api" }
 # TODO remove this dependency since it is unmaintained
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 
 shuttle = "0.6.1"
+tracing = { version = "0.1" }
+color-eyre = { version = "0.6.2", features = ["capture-spantrace"] }
+
+# used to optimize the eyre color backtraces in development
+[profile.dev.package.backtrace]
+opt-level = 3

@@ -26,6 +26,8 @@ async fn actix_web(
   pool: sqlx::PgPool,
   //#[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+  color_eyre::install().unwrap();
+
   let todo_repository = todo::PostgresTodoRepository::new(pool.clone());
   let todo_repository = actix_web::web::Data::new(todo_repository);
 

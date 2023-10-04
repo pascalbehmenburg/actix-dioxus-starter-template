@@ -13,8 +13,10 @@ use argon2::{
 
 use crate::{
   repository::user::UserRepository,
-  util::{body::JsonBody, error::Error, response::JsonResponse},
+  util::{error::Error, response::JsonResponse},
 };
+
+use super::error::UserError;
 
 pub fn service<R: UserRepository>(cfg: &mut ServiceConfig) {
   cfg.service(
@@ -37,7 +39,12 @@ async fn login<R: UserRepository>(
   login_user: web::Json<LoginUser>,
   repo: web::Data<R>,
 ) -> JsonResponse {
-  let user_val = repo.get_user_by_email(&login_user.email).await?.0;
+  let user_val = repo
+    .get_user_by_email(&login_user.email)
+    .await
+    .0
+    .map_err(|_| UserError::InvalidEmailOrPassword)?;
+
   let user = serde_json::from_value::<User>(user_val.clone())?;
 
   let argon2 = Argon2::default();
@@ -49,13 +56,13 @@ async fn login<R: UserRepository>(
   {
     Identity::login(&request.extensions(), user.id.to_string())
       .map_err(Into::into)
-      .map_err(Error::ActixWebServerError)?;
+      .map_err(Error::Other)?;
 
-    JsonResponse(Ok(JsonBody(user_val)))
+    JsonResponse(Ok(user_val))
   } else {
-    JsonResponse(Err(Error::CustomHTTPResponse(
+    JsonResponse(Err(Error::External(
       StatusCode::UNAUTHORIZED,
-      "Invalid password.".to_string(),
+      "Invalid email or password.".to_string(),
     )))
   }
 }

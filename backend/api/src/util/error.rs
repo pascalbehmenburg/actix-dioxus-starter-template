@@ -1,64 +1,73 @@
-use actix_web::{error, http::StatusCode};
+use actix_http::StatusCode;
+use actix_web::{http::header::ContentType, HttpResponse, ResponseError};
+use color_eyre::eyre;
 
-#[allow(dead_code)]
-#[derive(derive_more::From, Debug, derive_more::Display)]
+#[derive(Debug, derive_more::Display)]
+/// External variant is used to display a status and message to the user. It does not log the error.
+/// Refer to `with_error_log` or `with_debug_log` for logging the error.
+///
+/// Internal variant is used to display a status to the user and log the error.
+///
+/// Other variant is used to display an InternalServerError to the user and log the error.
+/// Also used for converting other errors into an Error without explicit conversions.
 pub enum Error {
-  // this basically catches everything that isn't catched already so this error is universally usable
-  #[from]
-  #[display(fmt = "Internal unspecified error occurred: {:?}", _0)]
-  UnspecificInternalError(anyhow::Error),
+  #[display(fmt = "Error {}: {}", _0, _1)]
+  External(StatusCode, String),
 
-  // Add whatever errors suits your needs:
-  #[from]
-  #[display(fmt = "Database error occurred: {:?}", _0)]
-  SqlxError(sqlx::Error),
+  #[display(fmt = "Status: {}\n{}", _0, _1)]
+  Internal(StatusCode, eyre::Error),
 
-  #[from]
-  #[display(fmt = "Argon2 hashing error occurred: {:?}", _0)]
-  Argon2HashingError(argon2::Error),
-
-  #[from]
-  #[display(fmt = "Argon2 hashing error occurred: {:?}", _0)]
-  Argon2PasswordHashingError(argon2::password_hash::Error),
-
-  #[from]
-  #[display(fmt = "Serialization error occurred: {:?}", _0)]
-  SerializationError(serde_json::Error),
-
-  #[from]
-  #[display(fmt = "Actix Web Server error occurred: {:?}", _0)]
-  ActixWebServerError(actix_web::error::Error),
-
-  // This produces custom HTTP errors for example after a failed login attempt:
-  // Error 401: wrong login credentials
-  #[display(fmt = "Error {:?}: {:?}", _0, _1)]
-  CustomHTTPResponse(StatusCode, String),
+  #[display(fmt = "{}", _0)]
+  Other(eyre::Error),
 }
 
+#[allow(dead_code)]
 impl Error {
-  pub fn log(&self) {
-    tracing::error!("[{:?}] {:?}", self.http_status_code(), self);
+  fn with_error_log<T: Into<eyre::Error>>(&self, source: T) {
+    let e: eyre::Error = source.into();
+    tracing::error!("{:?}", e);
   }
 
-  // provide the mappings from internal error specifiers to HTTP status codes
-  // this enables one to implement ResponseError and therefore be able to propagate all errors
-  // to the user in a standardized way
-  pub fn http_status_code(&self) -> StatusCode {
+  fn with_debug_log<T: Into<eyre::Error>>(&self, source: T) {
+    let e: eyre::Error = source.into();
+    tracing::debug!("{:?}", e);
+  }
+}
+
+impl ResponseError for Error {
+  fn status_code(&self) -> StatusCode {
     match self {
-      Error::CustomHTTPResponse(status_code, _) => *status_code,
-      Error::ActixWebServerError(e) => e.as_response_error().status_code(),
-      _ => StatusCode::INTERNAL_SERVER_ERROR,
+      Error::External(status_code, _) => *status_code,
+      Error::Internal(status_code, _) => *status_code,
+      Error::Other(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    }
+  }
+
+  fn error_response(&self) -> HttpResponse {
+    match self {
+      Error::External(status_code, error_message) => {
+        HttpResponse::build(*status_code)
+          .content_type(ContentType::plaintext())
+          .body((*error_message).clone())
+      }
+      Error::Internal(status_code, error) => {
+        tracing::error!("{:?}", error);
+        HttpResponse::build(*status_code)
+          .content_type(ContentType::plaintext())
+          .body(format!("Status {}: Something must've wen't wrong on our end, we're working on it.", status_code))
+      }
+      Error::Other(error) => {
+        tracing::error!("{:?}", error);
+        HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+          .content_type(ContentType::plaintext())
+          .body(format!("Status {}: We did a little wunky funky and I cannot tell you what it is.", StatusCode::INTERNAL_SERVER_ERROR))
+      }
     }
   }
 }
 
-impl error::ResponseError for Error {
-  // use standard implementation of error_response since it uses the internal display
-  // function and the status code function below so it is provided with everything we need
-  fn status_code(&self) -> StatusCode {
-    self.log();
-    self.http_status_code()
+impl<T: Into<eyre::Error>> From<T> for Error {
+  fn from(e: T) -> Self {
+    Error::Other(e.into())
   }
 }
-
-impl std::error::Error for Error {}
