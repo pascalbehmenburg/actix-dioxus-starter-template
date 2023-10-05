@@ -6,3 +6,7 @@ resolver = "2"
 license = "MIT"
 license-file = "LICENSE"
 authors = ["Pascal Behmenburg"]
+
+
+[profile.dev.package.backtrace]
+opt-level = 3

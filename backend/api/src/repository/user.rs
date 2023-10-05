@@ -4,7 +4,7 @@ use crate::util::response::JsonResponse;
 
 use super::error::{Operation, RepositoryError};
 
-const RELATION: &'static str = "User";
+const RELATION: &str = "User";
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync + 'static {

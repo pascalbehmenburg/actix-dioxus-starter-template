@@ -3,7 +3,7 @@ use shared::models::{CreateTodo, Todo, UpdateTodo};
 use super::error::{Operation, RepositoryError};
 use crate::util::response::JsonResponse;
 
-const RELATION: &'static str = "Todo";
+const RELATION: &str = "Todo";
 
 #[async_trait::async_trait]
 pub trait TodoRepository: Send + Sync + 'static {

@@ -14,5 +14,4 @@ async fn get_identity_id(identity: Identity) -> Result<i64, Error> {
   identity_id
     .parse::<i64>()
     .map_err(|e| Error::Other(e.into()))
-    .into()
 }

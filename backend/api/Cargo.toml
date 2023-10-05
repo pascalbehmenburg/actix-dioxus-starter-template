@@ -46,9 +46,6 @@ futures-core = "0.3.17"
 reqwest = { version = "0.11.20", features = ["json", "cookies", "rustls-tls"] }
 fake = "2.0.0"
 dotenv = "0.15.0"
+
 [features]
 __compress = []
-
-# used to optimize the eyre color backtraces in development
-[profile.dev.package.backtrace]
-opt-level = 3

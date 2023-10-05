@@ -1,7 +1,5 @@
 use actix_web::{web, HttpResponse};
 
-use crate::util::{error::Error, response::JsonResponse};
-
 pub const API_VERSION: &str = "v0.0.1";
 
 async fn health() -> HttpResponse {
