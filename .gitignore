@@ -25,3 +25,5 @@ api/shuttle/.env
 
 # rustrover config
 .idea/
+
+*.DS_STORE

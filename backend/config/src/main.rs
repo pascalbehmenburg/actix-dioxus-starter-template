@@ -21,8 +21,8 @@ extern crate dotenv_codegen;
 #[shuttle_runtime::main]
 async fn actix_web(
   #[shuttle_shared_db::Postgres(
-        local_uri = dotenv!("DATABASE_URL")
-    )]
+    local_uri = dotenv!("DATABASE_URL"),
+  )]
   pool: sqlx::PgPool,
   //#[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
