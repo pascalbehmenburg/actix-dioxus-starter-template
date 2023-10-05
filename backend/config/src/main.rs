@@ -18,6 +18,25 @@ use shuttle_actix_web::ShuttleActixWeb;
 #[macro_use]
 extern crate dotenv_codegen;
 
+fn install_tracing() {
+  use tracing_error::ErrorLayer;
+  use tracing_subscriber::prelude::*;
+  use tracing_subscriber::{fmt, EnvFilter};
+
+  let fmt_layer = fmt::layer().with_target(false);
+
+  // default to error
+  let filter_layer = EnvFilter::try_from_default_env()
+    .or_else(|_| EnvFilter::try_new("error"))
+    .unwrap();
+
+  tracing_subscriber::registry()
+    .with(filter_layer)
+    .with(fmt_layer)
+    .with(ErrorLayer::default())
+    .init();
+}
+
 #[shuttle_runtime::main]
 async fn actix_web(
   #[shuttle_shared_db::Postgres(
@@ -26,6 +45,7 @@ async fn actix_web(
   pool: sqlx::PgPool,
   //#[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+  install_tracing();
   color_eyre::install().unwrap();
 
   let todo_repository = todo::PostgresTodoRepository::new(pool.clone());

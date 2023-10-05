@@ -12,7 +12,7 @@ actix-session = "0.8.0"
 actix-identity = "0.6.0"
 
 tokio = "1.26.0"
-shuttle-runtime = "0.28.0"
+shuttle-runtime = { version = "0.28.0", default-features = false }
 shuttle-actix-web = "0.28.0"
 shuttle-shared-db = { version = "0.28.0", features = ["postgres-rustls"] }
 shuttle-static-folder = "0.28.0"
@@ -34,7 +34,5 @@ dotenv_codegen = "0.15.0"
 shuttle = "0.6.1"
 tracing = { version = "0.1" }
 color-eyre = { version = "0.6.2", features = ["capture-spantrace"] }
-
-# used to optimize the eyre color backtraces in development
-[profile.dev.package.backtrace]
-opt-level = 3
+tracing-error = "0.2.0"
+tracing-subscriber = "0.3.17"
